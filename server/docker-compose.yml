@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: code4ai-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: code4ai
+    ports:
+      - "5440:5432"
+    volumes:
+      - code4ai-pgdata:/var/lib/postgresql/data
+
+volumes:
+  code4ai-pgdata:
