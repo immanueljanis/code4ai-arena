@@ -1,0 +1,32 @@
+# deps
+node_modules/
+**/node_modules/
+
+# env / secrets
+.env
+.env.*
+!.env.example
+.dev.vars
+*.local
+
+# foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+
+# web build
+web/dist/
+web/dist-ssr/
+web/.output/
+web/.vinxi/
+web/.nitro/
+web/.tanstack/
+web/.wrangler/
+
+# logs / os
+*.log
+logs/
+.DS_Store
+
+# planning docs — kept local, not in repo
+/docs/

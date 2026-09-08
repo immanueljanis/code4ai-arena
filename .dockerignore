@@ -1,0 +1,12 @@
+.git
+.gitignore
+docs
+plans
+web
+admin
+node_modules
+server/node_modules
+server/.env
+contracts/out
+contracts/cache
+contracts/broadcast
