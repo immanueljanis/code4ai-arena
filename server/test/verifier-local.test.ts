@@ -42,6 +42,15 @@ describe("runPlaygroundVerification", () => {
     expect(verdict).toBe("VALID");
   }, 30000);
 
+  it("returns VALID for the reentrancy-vault callback exploit", async () => {
+    const verdict = await runPlaygroundVerification("reentrancy-vault", [
+      { caller: ATTACKER, entryPoint: "deposit", args: {} },
+      { caller: ATTACKER, entryPoint: "armSelfReentry", args: {} },
+      { caller: ATTACKER, entryPoint: "withdraw", args: { amount: 1 } },
+    ]);
+    expect(verdict).toBe("VALID");
+  }, 30000);
+
   it("returns VALID for the time-window exploit using waitBlocks (anvil mines instantly)", async () => {
     // The playground deploys TimeWindowVault with the anvil dev account as
     // beneficiary — claims must come from that address.

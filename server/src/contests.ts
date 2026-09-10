@@ -38,6 +38,16 @@ export const TARGET_META: TargetMeta[] = [
     bountyAmount: "1000000",
   },
   {
+    key: "reentrancy-vault",
+    contractFile: "ReentrancyVault.sol",
+    contractName: "ReentrancyVault",
+    objective: "Withdraw twice before the vault updates its accounting.",
+    invariantCount: 1,
+    stakeAmount: "1000000",
+    invariantId: keccak256(toBytes("balance-backed")),
+    bountyAmount: "1000000",
+  },
+  {
     key: "time-window-vault",
     contractFile: "TimeWindowVault.sol",
     contractName: "TimeWindowVault",

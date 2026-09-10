@@ -24,6 +24,12 @@ export const TARGETS: TargetSpec[] = [
     ctorArgs: () => [],
   },
   {
+    targetKey: "reentrancy-vault",
+    artifactFile: "ReentrancyVault.sol/ReentrancyVault.json",
+    contractName: "ReentrancyVault",
+    ctorArgs: () => [],
+  },
+  {
     targetKey: "time-window-vault",
     artifactFile: "TimeWindowVault.sol/TimeWindowVault.json",
     contractName: "TimeWindowVault",
