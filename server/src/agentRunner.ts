@@ -5,7 +5,8 @@
 //! - INVALID: settle the captured payment into the pool via Arena.slash.
 //! In both cases: write ERC-8004 feedback + persist the submission row.
 
-import { decryptPrivateKey } from "./wallet.ts";
+import { createHash } from "node:crypto";
+import { decryptPrivateKey, encryptPrivateKey } from "./wallet.ts";
 import { runOnchainVerification } from "./verifier-onchain.ts";
 import {
   settleStakeAuthorization,
@@ -18,17 +19,50 @@ import {
 import { payout, slash, invalidatePool } from "./arena.ts";
 import { ensureAgentUsdc } from "./fund.ts";
 import { writeReputationFeedback } from "./erc8004.ts";
-import { getAgent, insertSubmission, type AgentRow } from "./db.ts";
+import {
+  claimSubmissionAttempt,
+  createSubmissionAttempt,
+  getAgent,
+  insertSubmission,
+  updateSubmissionAttempt,
+  type AgentRow,
+} from "./db.ts";
 import { getTargetMeta } from "./contests.ts";
 import { serverConfig } from "./config.ts";
 import type { ExploitCall } from "./verifier-local.ts";
 
 export interface SubmitResult {
+  attemptId: string;
   submissionId: string;
   verdict: "VALID" | "INVALID";
   exploitTxHash: string;
   settlementTxHash: string;
   reputationTxHash: string;
+}
+
+/**
+ * One Arena deployment's journal namespace. Switching settlement asset means
+ * a new Arena, and an attempt from the old one must never resume against it.
+ */
+function deploymentId(): string {
+  return `${serverConfig.chainId}:${serverConfig.arenaAddress.toLowerCase()}`;
+}
+
+/** Stable fingerprint of everything that makes a submission the same request. */
+export function requestDigest(
+  targetKey: string,
+  exploitCalls: ExploitCall[],
+  x402Authorization?: X402Authorization
+): string {
+  return createHash("sha256")
+    .update(
+      JSON.stringify({
+        targetKey,
+        exploitCalls,
+        authorization: x402Authorization?.payload.transaction ?? null,
+      })
+    )
+    .digest("hex");
 }
 
 /** Injectable side-effects so the orchestration is unit-testable without mocks. */
@@ -102,7 +136,8 @@ export async function runSubmit(
   targetKey: string,
   exploitCalls: ExploitCall[],
   x402Authorization?: X402Authorization,
-  deps: SubmitDeps = realDeps
+  deps: SubmitDeps = realDeps,
+  requestKey?: string
 ): Promise<SubmitResult> {
   const agent: AgentRow | undefined = await getAgent(agentId);
   if (!agent) throw Object.assign(new Error("agent not found"), { status: 404 });
@@ -114,7 +149,29 @@ export async function runSubmit(
   // calls can be signed by the agent's own address.
   const agentKey = decryptPrivateKey(agent.encryptedPrivateKey, serverConfig.serverWalletSecret) as `0x${string}`;
 
-  const attemptId = crypto.randomUUID();
+  // 0. Journal the attempt before anything external happens. A repeated
+  //    Idempotency-Key returns the stored result instead of paying again; a
+  //    changed request under the same key is rejected as a conflict.
+  const { attempt, created } = await createSubmissionAttempt({
+    deploymentId: deploymentId(),
+    agentId: agent.id,
+    targetKey,
+    requestKey,
+    requestDigest: requestDigest(targetKey, exploitCalls, x402Authorization),
+  });
+  const attemptId = attempt.id;
+  if (!created) {
+    if (attempt.phase === "completed" && attempt.result) {
+      return attempt.result as SubmitResult;
+    }
+    throw Object.assign(
+      new Error(`attempt ${attemptId} is already in progress (phase ${attempt.phase})`),
+      { status: 409 }
+    );
+  }
+  if (!(await claimSubmissionAttempt(attemptId, "accepted", "provisioning"))) {
+    throw Object.assign(new Error(`attempt ${attemptId} is already claimed`), { status: 409 });
+  }
 
   // 0. A client-supplied authorization is checked before any spending, so a
   //    mismatched stake cannot make the server fund the agent.
@@ -133,17 +190,29 @@ export async function runSubmit(
   //     proof runs, so an unpayable or unbound stake never reaches settlement.
   const { paymentDigest } = await deps.verifyAuth(auth);
 
+  // 0e. The signed bytes are recorded before any submission so a crash resumes
+  //     the same authorization instead of generating a replacement payment.
+  await updateSubmissionAttempt(attemptId, "proving", {
+    paymentAuthorization: encryptPrivateKey(
+      JSON.stringify(auth),
+      serverConfig.serverWalletSecret
+    ),
+    paymentTransactionId: paymentDigest ?? null,
+  });
+
   // 1. Prove on-chain (fresh target instance).
   const { verdict, exploitTxHash } = await deps.verify(
     targetKey,
     exploitCalls,
     agentKey as `0x${string}`
   );
+  await updateSubmissionAttempt(attemptId, "proved", { verdict, exploitReceipt: exploitTxHash });
 
   // 2. Settle exactly once (R2).
   let settlementTxHash: string;
   if (verdict === "VALID") {
     deps.discardAuth(auth); // stake never moves
+    await updateSubmissionAttempt(attemptId, "accounting_pending");
     settlementTxHash = await deps.doPayout(
       targetKey,
       meta.invariantId,
@@ -153,9 +222,16 @@ export async function runSubmit(
       attemptId
     );
   } else {
+    await updateSubmissionAttempt(attemptId, "payment_pending");
     settlementTxHash = await deps.settleAuth(auth, attemptId, paymentDigest);
+    await updateSubmissionAttempt(attemptId, "accounting_pending", {
+      settlementReceipt: settlementTxHash,
+    });
     await deps.doSlash(targetKey, agent.walletAddress, STAKE, attemptId);
   }
+  await updateSubmissionAttempt(attemptId, "accounting_confirmed", {
+    accountingReceipt: settlementTxHash,
+  });
   invalidatePool(targetKey); // pool changed on-chain — refresh reads
 
   // 3. Reputation feedback (ERC-8004, mock by default).
@@ -177,11 +253,19 @@ export async function runSubmit(
     reputationTxHash,
   });
 
-  return {
+  const result: SubmitResult = {
+    attemptId,
     submissionId,
     verdict,
     exploitTxHash,
     settlementTxHash,
     reputationTxHash,
   };
+  await updateSubmissionAttempt(attemptId, "completed", {
+    submissionId,
+    reputationReceipt: reputationTxHash,
+    result,
+  });
+
+  return result;
 }

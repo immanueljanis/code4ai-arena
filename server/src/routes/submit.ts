@@ -52,8 +52,15 @@ submit.post("/:key/submit", async (c) => {
     return c.json({ error: (e as Error).message }, 400);
   }
 
+  // Optional: a client-chosen retry identity. Without it every request is a new
+  // attempt — a bare resend is never silently treated as a retry.
+  const requestKey = c.req.header("idempotency-key")?.trim() || undefined;
+  if (requestKey !== undefined && !/^[A-Za-z0-9_-]{1,64}$/.test(requestKey)) {
+    return c.json({ error: "Idempotency-Key must be 1-64 characters of A-Z a-z 0-9 _ -" }, 400);
+  }
+
   try {
-    const result = await runSubmit(body.agentId, key, calls, x402Authorization);
+    const result = await runSubmit(body.agentId, key, calls, x402Authorization, undefined, requestKey);
     return c.json(result);
   } catch (e) {
     const err = e as Error & { status?: number };
