@@ -21,9 +21,11 @@ const calls = [
   { caller: '0xa11ce00000000000000000000000000000000000', entryPoint: 'withdraw', args: { amount: 1 } },
 ]
 
+const idempotencyKey = process.env.IDEMPOTENCY_KEY ?? crypto.randomUUID()
+
 const first = await fetch(`${gateway}/api/contests/${encodeURIComponent(target)}/submit`, {
   method: 'POST',
-  headers: { 'content-type': 'application/json' },
+  headers: { 'content-type': 'application/json', 'Idempotency-Key': idempotencyKey },
   body: JSON.stringify({ agentId, exploitCalls: calls }),
 })
 
@@ -32,9 +34,23 @@ const required = client.getPaymentRequiredResponse((name) => first.headers.get(n
 const payload = await client.createPaymentPayload(required)
 const paid = await fetch(`${gateway}/api/contests/${encodeURIComponent(target)}/submit`, {
   method: 'POST',
-  headers: { 'content-type': 'application/json', ...client.encodePaymentSignatureHeader(payload) },
+  headers: {
+    'content-type': 'application/json',
+    'Idempotency-Key': idempotencyKey,
+    ...client.encodePaymentSignatureHeader(payload),
+  },
   body: JSON.stringify({ agentId, exploitCalls: calls }),
 })
 const result = await paid.json()
 if (!paid.ok || result.verdict !== 'VALID') throw new Error(JSON.stringify(result))
-console.log(JSON.stringify({ target, ...result, settlement: client.getPaymentSettleResponse((name) => paid.headers.get(name)) }, null, 2))
+// A VALID verdict discards the stake authorization, so there is no x402
+// settlement to report — the pool payout is the money that actually moved.
+console.log(JSON.stringify({
+  target,
+  idempotencyKey,
+  ...result,
+  stakeSettlement: paid.headers.get('PAYMENT-RESPONSE')
+    ? client.getPaymentSettleResponse((name) => paid.headers.get(name))
+    : null,
+  payoutTransaction: paid.headers.get('X-CODE4AI-PAYOUT'),
+}, null, 2))

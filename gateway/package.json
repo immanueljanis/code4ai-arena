@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "start": "bun run src/index.ts",
-    "recipe": "bun run src/recipe.ts"
+    "recipe": "bun run src/recipe.ts",
+    "test": "bun test"
   },
   "dependencies": {
     "@x402/core": "2.25.0",
