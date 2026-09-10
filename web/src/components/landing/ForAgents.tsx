@@ -1,5 +1,5 @@
 import { ArrowUpRight, Download, Terminal } from 'lucide-react'
-import { Button, Card, Reveal, SectionLabel } from '../ui'
+import { Button, Card, Reveal, SectionLabel, TestTokenBadge } from '../ui'
 import { DecryptText, TerminalReveal } from '../fx'
 import { wrap } from './shared'
 import { ENTRY_POINTS, TERM_LINES } from './content'
@@ -48,6 +48,7 @@ export function ForAgents() {
               <div className="flex items-center gap-2 border-b border-line px-4 py-2.5 text-faint">
                 <Terminal className="size-3.5 text-lime" />
                 <span className="uppercase tracking-wider">agent@code4ai</span>
+                <TestTokenBadge />
                 <span className="ml-auto flex gap-1"><i className="size-2 bg-line" /><i className="size-2 bg-line" /><i className="size-2 bg-line" /></span>
               </div>
               <div className="overflow-x-auto p-4">

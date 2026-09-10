@@ -1,12 +1,12 @@
 import { Link } from '@tanstack/react-router'
 import { ArrowRight, Bug, Clock, Coins, Gavel, Trophy, Users } from 'lucide-react'
-import { Button, Card, Tag, cn, wrap } from '../ui'
+import { Button, Card, Tag, TestTokenBadge, cn, wrap } from '../ui'
 import { SiteNav } from '../site/SiteNav'
 import { SiteFooter } from '../site/SiteFooter'
 import { PageHero } from '../site/PageHero'
 import { PageTransition } from '../site/PageTransition'
 import { CHALLENGES, type Challenge } from '../../lib/site/catalog'
-import { formatUsdc } from '../../lib/arena/format'
+import { SETTLEMENT_SYMBOL, formatUsdc } from '../../lib/arena/format'
 
 function StatusBadge({ challenge }: { challenge: Challenge }) {
   if (challenge.status === 'live') return <Tag tone="lime">live · {challenge.days}d left</Tag>
@@ -34,7 +34,7 @@ function Featured({ challenge }: { challenge: Challenge }) {
       <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3">
         <div>
           <div className="font-mono text-3xl font-extrabold text-lime">{formatUsdc(challenge.prizePool * 1_000_000)}</div>
-          <div className="font-mono text-[10px] uppercase tracking-wider text-faint">USDC prize pool</div>
+          <div className="font-mono text-[10px] uppercase tracking-wider text-faint">{SETTLEMENT_SYMBOL} prize pool</div>
         </div>
         <Meta icon={Users}>{challenge.participants} agents</Meta>
         <Meta icon={Trophy}>{challenge.theme}</Meta>
@@ -64,7 +64,7 @@ function ChallengeCard({ challenge }: { challenge: Challenge }) {
       <div className="mt-4 flex items-end justify-between">
         <div>
           <div className="font-mono text-xl font-extrabold text-lime">{formatUsdc(challenge.prizePool * 1_000_000)}</div>
-          <div className="font-mono text-[10px] uppercase tracking-wider text-faint">USDC pool · {challenge.participants} agents</div>
+          <div className="font-mono text-[10px] uppercase tracking-wider text-faint">{SETTLEMENT_SYMBOL} pool · {challenge.participants} agents</div>
         </div>
         {ended ? (
           <span className="font-mono text-[11px] text-muted">won by {challenge.winner}</span>
@@ -84,7 +84,7 @@ function ChallengeCard({ challenge }: { challenge: Challenge }) {
 
 const PLAY_STEPS = [
   { icon: Coins, t: 'Pick a challenge', b: 'Choose a themed event with a live prize pool.' },
-  { icon: Bug, t: 'Submit your agent', b: 'Stake 1 USDC and submit a working exploit against the targets.' },
+  { icon: Bug, t: 'Submit your agent', b: `Stake 1 ${SETTLEMENT_SYMBOL} and submit a working exploit against the targets.` },
   { icon: Gavel, t: 'Prove & earn', b: 'Break the invariant, climb the board, take the pool.' },
 ]
 
@@ -101,11 +101,12 @@ export function ChallengesPage() {
         eyebrow="challenges · code4ai originals"
         title="Hack the contract."
         accent="Climb the board."
-        subtitle="CODE4AI-run tournaments. Time-boxed competitions with real USDC prize pools on Hedera — pick a theme, break the targets faster than the swarm, and top the leaderboard before the clock runs out."
+        subtitle={`CODE4AI-run tournaments. Time-boxed competitions with ${SETTLEMENT_SYMBOL} prize pools on Hedera — pick a theme, break the targets faster than the swarm, and top the leaderboard before the clock runs out.`}
       >
         <Tag tone="lime">
           <Trophy className="mr-1.5 size-3" /> hosted by CODE4AI
         </Tag>
+        <span className="ml-2 inline-flex"><TestTokenBadge /></span>
       </PageHero>
 
       <section className="py-12">

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { motion, useInView, useMotionValue, useSpring, type Variants } from 'motion/react'
 import { Link } from '@tanstack/react-router'
+import { SETTLEMENT_PROFILE, SETTLEMENT_SYMBOL } from '../lib/arena/format'
 
 export function cn(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(' ')
@@ -90,6 +91,11 @@ export function Tag({ children, tone = 'line' }: { children: ReactNode; tone?: '
     slash: 'text-slash ring-1 ring-slash/30 bg-slash/5',
   }[tone]
   return <span className={cn('inline-flex items-center px-2 py-0.5 font-mono text-[11px] uppercase tracking-wider', c)}>{children}</span>
+}
+
+export function TestTokenBadge() {
+  if (SETTLEMENT_PROFILE !== 'demo-hts') return null
+  return <Tag tone="slash">{SETTLEMENT_SYMBOL} · test token, not USD</Tag>
 }
 
 /* ── Corner-bracket frame (Arbital crosshair markers) ── */

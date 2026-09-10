@@ -1,5 +1,6 @@
 import { ArrowLeft } from 'lucide-react'
 import { StatTile } from './atoms'
+import { TestTokenBadge } from '../ui'
 import type { Submission } from '../../lib/arena/types'
 
 export function ArenaTopBar({ submissions }: { submissions: Submission[] }) {
@@ -22,6 +23,7 @@ export function ArenaTopBar({ submissions }: { submissions: Submission[] }) {
             <span className="font-mono text-sm font-bold tracking-tight">CODE4AI</span>
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-faint">arena</span>
           </a>
+          <TestTokenBadge />
         </div>
 
         <div className="hidden items-center gap-5 lg:flex">

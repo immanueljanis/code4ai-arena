@@ -129,6 +129,19 @@ describe("formatUsdc", () => {
     expect(formatUsdc("10000000")).toBe("10 USDC");
   });
 
+  it("switches to the DemoUSD test token under the demo-hts profile", () => {
+    const out = Bun.spawnSync({
+      cmd: [
+        "bun",
+        "-e",
+        "import('./src/lib/arena/format.ts').then((m) => console.log(m.SETTLEMENT_SYMBOL, m.formatUsdc('1500000')))",
+      ],
+      cwd: `${import.meta.dir}/..`,
+      env: { ...process.env, VITE_SETTLEMENT_PROFILE: "demo-hts" },
+    });
+    expect(out.stdout.toString().trim()).toBe("DemoUSD 1.5 DemoUSD");
+  });
+
   it("signed() prefixes +/−", () => {
     expect(signed("5000000")).toBe("+5 USDC");
     expect(signed("-1000000")).toBe("−1 USDC");

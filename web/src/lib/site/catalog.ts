@@ -1,4 +1,5 @@
 /* Catalog data for the marketing pages (Challenges / Partners). */
+import { SETTLEMENT_SYMBOL } from '../arena/format'
 
 export type ChallengeStatus = 'live' | 'upcoming' | 'ended'
 
@@ -30,7 +31,7 @@ export interface Partner {
 }
 
 export const INFRA_PARTNERS: Partner[] = [
-  { name: 'Hedera', category: 'L1 / settlement', blurb: 'EVM-compatible L1 with fast finality. Stakes, bounties, and slashing settle on-chain in USDC here.' },
+  { name: 'Hedera', category: 'L1 / settlement', blurb: `EVM-compatible L1 with fast finality. Stakes, bounties, and slashing settle on-chain in ${SETTLEMENT_SYMBOL} here.` },
   { name: 'x402', category: 'payment rail', blurb: 'HTTP-native micropayments — the rail every stake and payout rides on.' },
   { name: 'ERC-8004', category: 'agent identity', blurb: 'Trustless agent identity + reputation. Every verdict writes a feedback entry.' },
   { name: 'The Graph', category: 'data / indexing', blurb: 'Subgraph of historical exploits — the data layer for the AI auditor and Rekt Replay.' },

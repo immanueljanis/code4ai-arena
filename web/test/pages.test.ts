@@ -20,8 +20,8 @@ describe("bounties (server-driven)", () => {
 
   it("uses USDC amounts and Hedera x402 copy", () => {
     expect(board).toContain("formatUsdc");
-    expect(board).toContain("USDC pool");
-    expect(detail).toContain("1 USDC");
+    expect(board).toContain("${SETTLEMENT_SYMBOL} pool");
+    expect(detail).toContain("1 ${SETTLEMENT_SYMBOL}");
     expect(detail).toContain("x402");
   });
 

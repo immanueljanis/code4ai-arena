@@ -30,7 +30,7 @@ describe("arena cockpit — rebrand + no old API", () => {
     expect(board).toContain("formatUsdc");
     expect(board).toContain("pool");
     const panel = read("components/arena/ExploitPanel.tsx");
-    expect(panel).toContain("stake 1 USDC");
+    expect(panel).toContain("1 ${SETTLEMENT_SYMBOL} stake via x402");
     expect(panel).toContain("playground");
   });
 
@@ -58,7 +58,7 @@ describe("exploit panel UX", () => {
     expect(src).toContain("playground");
     expect(src).toContain("submit");
     expect(src).toContain("Run playground");
-    expect(src).toContain("Submit · stake 1 USDC");
+    expect(src).toContain("Submit · stake 1 {SETTLEMENT_SYMBOL}");
     expect(src).toContain("exploitCalls");
   });
 

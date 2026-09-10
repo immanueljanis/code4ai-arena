@@ -2,14 +2,21 @@
 
 const USDC_DECIMALS = 1_000_000n
 
-/** USDC atomic units (6 decimals) → display string, e.g. "5 USDC" or "1.5 USDC". */
+export const SETTLEMENT_PROFILE =
+  (import.meta.env?.['VITE_SETTLEMENT_PROFILE'] as string | undefined) === 'demo-hts'
+    ? 'demo-hts'
+    : 'usdc'
+
+export const SETTLEMENT_SYMBOL = SETTLEMENT_PROFILE === 'demo-hts' ? 'DemoUSD' : 'USDC'
+
+/** Settlement atomic units (6 decimals) → display string, e.g. "5 USDC" or "1.5 DemoUSD". */
 export function formatUsdc(amount: string | number | bigint): string {
   const atomic = BigInt(amount)
   const whole = atomic / USDC_DECIMALS
   const frac = atomic % USDC_DECIMALS
-  if (frac === 0n) return `${whole} USDC`
+  if (frac === 0n) return `${whole} ${SETTLEMENT_SYMBOL}`
   const fracStr = (frac.toString()).padStart(6, '0').replace(/0+$/, '')
-  return `${whole}.${fracStr} USDC`
+  return `${whole}.${fracStr} ${SETTLEMENT_SYMBOL}`
 }
 
 export const shortHash = (hash: string, edge = 4): string =>

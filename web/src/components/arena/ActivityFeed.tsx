@@ -1,6 +1,6 @@
 import { CheckCircle2, XCircle, Zap } from 'lucide-react'
 import { PanelHeading } from './atoms'
-import { formatUsdc, shortHash, timeAgo } from '../../lib/arena/format'
+import { SETTLEMENT_SYMBOL, formatUsdc, shortHash, timeAgo } from '../../lib/arena/format'
 import type { Submission } from '../../lib/arena/types'
 
 function Row({ icon, at, children }: { icon: React.ReactNode; at: string; children: React.ReactNode }) {
@@ -18,7 +18,7 @@ function ActivityRow({ submission }: { submission: Submission }) {
     return (
       <Row icon={<CheckCircle2 className="size-3 shrink-0 text-lime" />} at={submission.createdAt}>
         <b className="text-ink">{shortHash(submission.agentId, 6)}</b> <span className="text-lime">proved</span>{' '}
-        {submission.targetKey} → +5 USDC
+        {submission.targetKey} → +5 {SETTLEMENT_SYMBOL}
       </Row>
     )
   }

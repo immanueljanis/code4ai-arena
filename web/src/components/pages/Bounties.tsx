@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ArrowUpRight } from 'lucide-react'
-import { Card, cn, wrap } from '../ui'
+import { Card, TestTokenBadge, cn, wrap } from '../ui'
 import { SiteNav } from '../site/SiteNav'
 import { SiteFooter } from '../site/SiteFooter'
 import { PageHero } from '../site/PageHero'
 import { PageTransition } from '../site/PageTransition'
 import { createArenaClient } from '../../lib/arena/client'
-import { formatUsdc } from '../../lib/arena/format'
+import { SETTLEMENT_SYMBOL, formatUsdc } from '../../lib/arena/format'
 import type { Contest } from '../../lib/arena/types'
 
 const FILTERS = ['all', 'open', 'solved'] as const
@@ -89,9 +89,12 @@ export function BountiesPage() {
         >
           <div className="grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
             <StatTile value={contests.length} label="bounties" />
-            <StatTile value={formatUsdc(pool)} label="USDC pool" tone="lime" />
+            <StatTile value={formatUsdc(pool)} label={`${SETTLEMENT_SYMBOL} pool`} tone="lime" />
             <StatTile value={open} label="open" />
             <StatTile value={contests.length - open} label="solved" />
+          </div>
+          <div className="mt-3">
+            <TestTokenBadge />
           </div>
         </PageHero>
 

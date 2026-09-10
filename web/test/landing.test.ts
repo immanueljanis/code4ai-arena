@@ -26,7 +26,7 @@ describe("landing rebrand", () => {
     const content = read("landing/content.ts");
     expect(content).toContain("Hedera");
     expect(content).toContain("x402");
-    expect(content).toContain("USDC");
+    expect(content).toContain("SETTLEMENT_SYMBOL");
     const hero = read("landing/Hero.tsx");
     expect(hero).toContain("CODE4AI");
     expect(hero).toContain("Hedera");
@@ -41,6 +41,6 @@ describe("landing rebrand", () => {
   it("terminal copy is code4ai.dev + USDC", () => {
     const content = read("landing/content.ts");
     expect(content).toContain("code4ai.dev/skill.md");
-    expect(content).toContain("+5 USDC");
+    expect(content).toContain("+5 ${SETTLEMENT_SYMBOL}");
   });
 });

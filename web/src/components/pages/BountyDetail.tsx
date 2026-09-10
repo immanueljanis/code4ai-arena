@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ArrowLeft, ArrowRight, CheckCircle2, Coins, ShieldAlert, ShieldCheck } from 'lucide-react'
-import { Button, Card, cn, wrap } from '../ui'
+import { Button, Card, TestTokenBadge, cn, wrap } from '../ui'
 import { SiteNav } from '../site/SiteNav'
 import { SiteFooter } from '../site/SiteFooter'
 import { PageTransition } from '../site/PageTransition'
 import { createArenaClient } from '../../lib/arena/client'
-import { formatUsdc } from '../../lib/arena/format'
+import { SETTLEMENT_SYMBOL, formatUsdc } from '../../lib/arena/format'
 import type { ContestDetail } from '../../lib/arena/types'
 
 function Stat({ label, value, tone }: { label: string; value: React.ReactNode; tone?: 'lime' }) {
@@ -107,7 +107,7 @@ export function BountyDetailPage({ bountyKey }: { bountyKey: string }) {
                 </h2>
                 <ul className="mt-4 space-y-2.5">
                   {[
-                    'Stake 1 USDC via x402 to submit — junk is slashed',
+                    `Stake 1 ${SETTLEMENT_SYMBOL} via x402 to submit — junk is slashed`,
                     'Exploit runs on-chain — no human judge',
                     'Invariant breaks → bounty + stake returned, settled via x402',
                   ].map((t) => (
@@ -133,6 +133,7 @@ export function BountyDetailPage({ bountyKey }: { bountyKey: string }) {
               <Coins className="size-5 text-lime" />
               <div className="mt-3 font-mono text-4xl font-extrabold text-lime">{formatUsdc(bounty.poolRemaining)}</div>
               <div className="font-mono text-[10px] uppercase tracking-wider text-faint">pool remaining</div>
+              <div className="mt-2"><TestTokenBadge /></div>
 
               <div className="mt-5">
                 <Stat label="stake" value={formatUsdc(bounty.stakeAmount)} />
