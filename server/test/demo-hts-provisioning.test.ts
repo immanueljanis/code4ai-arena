@@ -207,13 +207,22 @@ describe("DemoUSD token construction", () => {
     expect(transaction.treasuryAccountId?.toString()).toBe(config.treasuryAccountId);
   });
 
-  it("requires distinct non-runtime provisioning keys", () => {
+  it("requires the supply key to be distinct from every runtime key", () => {
     const supplyIsOperator = env();
     supplyIsOperator.DEMO_HTS_SUPPLY_PRIVATE_KEY = supplyIsOperator.DEMO_HTS_OPERATOR_PRIVATE_KEY;
     expect(() => loadProvisioningConfig(supplyIsOperator)).toThrow("must be distinct");
     const supplyIsTreasury = env();
     supplyIsTreasury.DEMO_HTS_SUPPLY_PRIVATE_KEY = supplyIsTreasury.DEMO_HTS_TREASURY_PRIVATE_KEY;
     expect(() => loadProvisioningConfig(supplyIsTreasury)).toThrow("must be distinct");
+  });
+
+  it("allows the operator account to also be the treasury", () => {
+    const shared = env();
+    shared.DEMO_HTS_TREASURY_ACCOUNT_ID = shared.DEMO_HTS_OPERATOR_ACCOUNT_ID;
+    shared.DEMO_HTS_TREASURY_PRIVATE_KEY = shared.DEMO_HTS_OPERATOR_PRIVATE_KEY;
+    const config = loadProvisioningConfig(shared);
+    expect(config.treasuryAccountId).toBe(config.operatorAccountId);
+    expect(config.supplyKey.publicKey.toString()).not.toBe(config.operatorKey.publicKey.toString());
   });
 
   it("requires a complete recipient association and funding request", () => {

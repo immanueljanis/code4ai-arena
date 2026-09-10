@@ -114,8 +114,10 @@ export function loadProvisioningConfig(env: Record<string, string | undefined>):
   const operatorKey = parseKey(env, "DEMO_HTS_OPERATOR_PRIVATE_KEY");
   const treasuryKey = parseKey(env, "DEMO_HTS_TREASURY_PRIVATE_KEY");
   const supplyKey = parseKey(env, "DEMO_HTS_SUPPLY_PRIVATE_KEY");
-  const publicKeys = new Set([publicKeyIdentity(operatorKey), publicKeyIdentity(treasuryKey), publicKeyIdentity(supplyKey)]);
-  if (publicKeys.size !== 3) throw new Error("DEMO_HTS operator, treasury, and supply keys must be distinct");
+  const supplyIdentity = publicKeyIdentity(supplyKey);
+  if (supplyIdentity === publicKeyIdentity(operatorKey) || supplyIdentity === publicKeyIdentity(treasuryKey)) {
+    throw new Error("DEMO_HTS supply key must be distinct from the operator and treasury keys");
+  }
 
   const tokenId = env.DEMO_HTS_TOKEN_ID;
   if (tokenId !== undefined && !isHederaId(tokenId)) {
