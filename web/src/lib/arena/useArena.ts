@@ -94,6 +94,13 @@ export function useArena(initialKey?: string | null): UseArena {
     }
   }, [client, selectedKey])
 
+  useEffect(() => {
+    const timer = setInterval(() => {
+      void refresh().catch(() => undefined)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [refresh])
+
   const select = useCallback((key: string) => setSelectedKey(key), [])
 
   const registerAgent = useCallback(

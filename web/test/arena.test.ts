@@ -42,6 +42,13 @@ describe("arena cockpit — rebrand + no old API", () => {
     expect(hook).toContain("client.state");
     expect(hook).not.toMatch(/subscribe|EventSource/i);
   });
+
+  it("polls the spectator state for live updates", () => {
+    const hook = read("lib/arena/useArena.ts");
+    expect(hook).toContain("setInterval");
+    expect(hook).toContain("refresh()");
+    expect(hook).toContain("5000");
+  });
 });
 
 describe("exploit panel UX", () => {
