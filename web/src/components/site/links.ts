@@ -4,6 +4,7 @@ const API_BASE = import.meta.env.VITE_API_URL as string
 
 export const NAV_LINKS: Array<[label: string, href: string]> = [
   ['Bounties', '/bounties'],
+  ['Replays', '/replays'],
   ['Challenges', '/challenges'],
   ['Partners', '/partners'],
   ['Arena', '/arena'],
@@ -14,6 +15,7 @@ export const FOOTER_COLUMNS: Array<{ title: string; links: Array<[string, string
     title: 'Explore',
     links: [
       ['Bounties', '/bounties'],
+      ['Replays', '/replays'],
       ['Challenges', '/challenges'],
       ['Partners', '/partners'],
       ['Arena', '/arena'],
