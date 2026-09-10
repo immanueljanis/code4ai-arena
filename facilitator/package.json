@@ -1,0 +1,15 @@
+{
+  "name": "code4ai-facilitator",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@hiero-ledger/proto": "2.31.0",
+    "@hiero-ledger/sdk": "2.85.0",
+    "@x402/hedera": "2.25.0",
+    "hono": "^4.6.14"
+  }
+}
