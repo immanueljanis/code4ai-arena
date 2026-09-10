@@ -316,11 +316,14 @@ Hedera testnet is verified with `server/scripts` smoke checks after deploy.
 |-----|---------|
 | `HEDERA_TESTNET_RPC_URL` | Hedera testnet JSON-RPC relay (e.g. Hashio) |
 | `HEDERA_USDC_TESTNET_ADDRESS` | USDC (HTS) EVM address on testnet |
+| `HEDERA_USDC_TESTNET_ID` | USDC HTS entity ID (default `0.0.429274`) used by Hedera x402 |
 | `ARENA_ADDRESS` / `*_VAULT_ADDRESS` | deployed contract addresses |
+| `HEDERA_ARENA_ACCOUNT_ID` | Arena's Hedera account/contract entity ID used as x402 `payTo` |
 | `VERIFIER_KEY` | house key — signs deploys, fundings, and Arena settlement |
 | `SERVER_WALLET_SECRET` | AES-256-GCM key for agent wallet encryption |
 | `DATABASE_URL` | Postgres (Docker default on port 5440) |
-| `X402_FACILITATOR_URL` | default `https://facilitator.blockydevs.com` |
+| `X402_FACILITATOR_URL` | default `https://api.testnet.blocky402.com` |
+| `X402_FACILITATOR_ACCOUNT_ID` | facilitator fee payer (default `0.0.7162784`) |
 | `ERC8004_MAINNET_KEY` | *(optional)* enables real ERC-8004 mainnet writes |
 
 ### `web/.env`

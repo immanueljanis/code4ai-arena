@@ -6,7 +6,9 @@ export interface ServerConfig {
   chainId: number;
   rpcUrl: string;
   usdcAddress: `0x${string}`;
+  hederaUsdcTokenId: string;
   arenaAddress: `0x${string}`;
+  hederaArenaAccountId: string;
   vaultAddresses: {
     accessControl: `0x${string}`;
     rounding: `0x${string}`;
@@ -15,6 +17,7 @@ export interface ServerConfig {
   verifierKey: `0x${string}`;
   serverWalletSecret: string;
   x402FacilitatorUrl: string;
+  hederaFacilitatorAccountId: string;
   erc8004MainnetKey?: string;
 }
 
@@ -25,11 +28,21 @@ function requiredAddr(env: Record<string, string | undefined>, key: string): `0x
   return raw as `0x${string}`;
 }
 
+function requiredHederaId(env: Record<string, string | undefined>, key: string, fallback?: string): string {
+  const raw = env[key] ?? fallback;
+  if (!raw) throw new Error(`missing required env var ${key}`);
+  if (!/^\d+\.\d+\.\d+$/.test(raw)) {
+    throw new Error(`env var ${key} is not a valid Hedera entity ID: ${raw}`);
+  }
+  return raw;
+}
+
 export function loadConfig(env: Record<string, string | undefined>): ServerConfig {
   const required = [
     "HEDERA_TESTNET_RPC_URL",
     "HEDERA_USDC_TESTNET_ADDRESS",
     "ARENA_ADDRESS",
+    "HEDERA_ARENA_ACCOUNT_ID",
     "ACCESS_CONTROL_VAULT_ADDRESS",
     "ROUNDING_VAULT_ADDRESS",
     "TIME_WINDOW_VAULT_ADDRESS",
@@ -49,7 +62,9 @@ export function loadConfig(env: Record<string, string | undefined>): ServerConfi
     chainId: CHAIN_ID,
     rpcUrl: env.HEDERA_TESTNET_RPC_URL as string,
     usdcAddress: requiredAddr(env, "HEDERA_USDC_TESTNET_ADDRESS"),
+    hederaUsdcTokenId: requiredHederaId(env, "HEDERA_USDC_TESTNET_ID", "0.0.429274"),
     arenaAddress: requiredAddr(env, "ARENA_ADDRESS"),
+    hederaArenaAccountId: requiredHederaId(env, "HEDERA_ARENA_ACCOUNT_ID"),
     vaultAddresses: {
       accessControl: requiredAddr(env, "ACCESS_CONTROL_VAULT_ADDRESS"),
       rounding: requiredAddr(env, "ROUNDING_VAULT_ADDRESS"),
@@ -58,7 +73,12 @@ export function loadConfig(env: Record<string, string | undefined>): ServerConfi
     verifierKey: verifierKey as `0x${string}`,
     serverWalletSecret: env.SERVER_WALLET_SECRET as string,
     x402FacilitatorUrl:
-      env.X402_FACILITATOR_URL ?? "https://facilitator.blockydevs.com",
+      env.X402_FACILITATOR_URL ?? "https://api.testnet.blocky402.com",
+    hederaFacilitatorAccountId: requiredHederaId(
+      env,
+      "X402_FACILITATOR_ACCOUNT_ID",
+      "0.0.7162784"
+    ),
     erc8004MainnetKey: env.ERC8004_MAINNET_KEY || undefined,
   };
 }

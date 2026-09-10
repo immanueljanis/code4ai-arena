@@ -1,115 +1,108 @@
-import { createHash } from "node:crypto";
+/**
+ * Hedera x402 spike (pinned to @x402/hedera 2.25.0):
+ * - `ExactHederaScheme` creates a v2 payload whose scheme payload is
+ *   `{ transaction: base64 }`, a frozen `TransferTransaction` signed only by
+ *   the payer. The facilitator adds its fee-payer signature and submits it.
+ * - Hedera requirements use CAIP-2 `hedera:testnet`, HTS token ID / account ID
+ *   values, and `extra.feePayer`; EVM addresses are only used by the contract
+ *   transaction layer and are not valid payment requirement values.
+ * - Settlement is the standard facilitator `POST /settle` body with
+ *   `paymentPayload` and `paymentRequirements`; success returns a Hedera
+ *   transaction ID in `transaction`.
+ */
+
+import {
+  AccountId,
+  PrivateKey,
+  createClientHederaSigner,
+  createHederaClient,
+} from "@x402/hedera";
 import { privateKeyToAccount } from "viem/accounts";
 import { serverConfig } from "./config.ts";
 
-/** Payment requirements (accepted) — matches the facilitator's PaymentRequirementsV2. */
+const HEDERA_NETWORK = "hedera:testnet" as const;
+
+/** Payment requirements accepted by the Hedera x402 exact scheme. */
 export interface X402Requirements {
-  scheme: string;
-  network: string;
+  scheme: "exact";
+  network: typeof HEDERA_NETWORK;
   amount: string;
   asset: string;
   payTo: string;
   maxTimeoutSeconds: number;
-  extra?: { name: string; version: string };
+  extra: { feePayer: string };
 }
 
-/**
- * A signed x402 v2 payment payload (facilitator's PaymentPayloadV2 shape):
- * `{ x402Version, accepted, payload: { authorization, signature } }`.
- */
+/** x402 v2 payload with a partially-signed Hedera transfer. */
 export interface X402Authorization {
-  x402Version: number;
+  x402Version: 2;
   accepted: X402Requirements;
   payload: {
-    authorization: {
-      from: string;
-      to: string;
-      value: string;
-      validAfter: string;
-      validBefore: string;
-      nonce: string;
-    };
-    signature: string;
+    transaction: string;
   };
 }
 
+function asHederaAccountId(value: string): string {
+  if (/^\d+\.\d+\.\d+$/.test(value)) return AccountId.fromString(value).toString();
+  if (value.toLowerCase() === serverConfig.arenaAddress.toLowerCase()) {
+    return serverConfig.hederaArenaAccountId;
+  }
+  return AccountId.fromEvmAddress(0, 0, value).toString();
+}
+
+/** Build the exact requirements that server and client payments must match. */
+export function stakePaymentRequirements(
+  payTo: string = serverConfig.hederaArenaAccountId,
+  amountAtomic: string = "1000000"
+): X402Requirements {
+  return {
+    scheme: "exact",
+    network: HEDERA_NETWORK,
+    amount: amountAtomic,
+    asset: serverConfig.hederaUsdcTokenId,
+    payTo: asHederaAccountId(payTo),
+    maxTimeoutSeconds: 300,
+    extra: { feePayer: serverConfig.hederaFacilitatorAccountId },
+  };
+}
+
+async function resolveAgentAccountId(agentAddress: `0x${string}`): Promise<string> {
+  const client = createHederaClient(HEDERA_NETWORK);
+  try {
+    // Agent wallets are created in EVM form. Mirror Node resolves that alias
+    // to the concrete Hedera account required by facilitator verification.
+    return (await AccountId.fromEvmAddress(0, 0, agentAddress).populateAccountNum(client)).toString();
+  } finally {
+    client.close();
+  }
+}
+
 /**
- * Sign a USDC EIP-3009 `TransferWithAuthorization` for the stake, bound to
- * OUR Arena contract (payTo) and OUR USDC (verifyingContract). The EIP-712
- * domain uses name "USDC", version "2", chain 296 — the EIP-712 domain a
- * Circle FiatToken USDC expects.
- *
- * The server holds the agent's wallet (custody mode), so it can sign on the
- * agent's behalf. Returns the `X402Authorization` payload for /settle.
+ * Create an HTS-USDC transfer signed by the agent but incomplete until the
+ * facilitator adds its fee-payer signature and submits it.
  */
 export async function signStakeAuthorization(
   agentKey: `0x${string}`,
-  payTo: string = serverConfig.arenaAddress,
-  amountAtomic: string = "1000000" // 1 USDC
+  payTo: string = serverConfig.hederaArenaAccountId,
+  amountAtomic: string = "1000000"
 ): Promise<X402Authorization> {
-  const account = privateKeyToAccount(agentKey);
-  const now = Math.floor(Date.now() / 1000);
-  const nonce = `0x${createHash("sha256").update(`${account.address}:${now}:${Math.random()}`).digest("hex")}`;
-
-  const authorization = {
-    from: account.address,
-    to: payTo,
-    value: amountAtomic,
-    validAfter: String(now - 60), // tolerate clock skew
-    validBefore: String(now + 900), // 15 minutes
-    nonce,
-  };
-
-  const signature = await account.signTypedData({
-    domain: {
-      name: "USDC",
-      version: "2",
-      chainId: serverConfig.chainId,
-      verifyingContract: serverConfig.usdcAddress as `0x${string}`,
-    },
-    types: {
-      TransferWithAuthorization: [
-        { name: "from", type: "address" },
-        { name: "to", type: "address" },
-        { name: "value", type: "uint256" },
-        { name: "validAfter", type: "uint256" },
-        { name: "validBefore", type: "uint256" },
-        { name: "nonce", type: "bytes32" },
-      ],
-    },
-    primaryType: "TransferWithAuthorization",
-    message: {
-      from: account.address,
-      to: payTo as `0x${string}`,
-      value: BigInt(amountAtomic),
-      validAfter: BigInt(authorization.validAfter),
-      validBefore: BigInt(authorization.validBefore),
-      nonce: nonce as `0x${string}`,
-    },
-  });
+  const payerAccountId = await resolveAgentAccountId(privateKeyToAccount(agentKey).address);
+  const requirements = stakePaymentRequirements(payTo, amountAtomic);
+  const signer = createClientHederaSigner(
+    payerAccountId,
+    PrivateKey.fromStringECDSA(agentKey),
+    { network: HEDERA_NETWORK }
+  );
+  const transaction = await signer.createPartiallySignedTransferTransaction(requirements);
 
   return {
     x402Version: 2,
-    accepted: {
-      scheme: "exact", // facilitator /supported: scheme id is "exact" (not v2-eip155-exact)
-      network: `eip155:${serverConfig.chainId}`,
-      amount: amountAtomic,
-      asset: serverConfig.usdcAddress,
-      payTo,
-      maxTimeoutSeconds: 300,
-      extra: { name: "USDC", version: "2" },
-    },
-    payload: { authorization, signature },
+    accepted: requirements,
+    payload: { transaction },
   };
 }
 
-/**
- * Settle a signed x402 authorization via the x402 facilitator (exact scheme).
- * The facilitator pays gas and executes `transferWithAuthorization` on USDC.
- * Body shape (verified against the live facilitator): the payment payload
- * MUST embed `accepted`, and `paymentRequirements` is sent alongside it.
- * Returns the settlement tx hash; throws on facilitator failure.
- */
+/** Settle the captured Hedera payment exactly once through the facilitator. */
 export async function settleStakeAuthorization(
   authorization: X402Authorization,
   facilitatorUrl: string = serverConfig.x402FacilitatorUrl
@@ -128,20 +121,24 @@ export async function settleStakeAuthorization(
     throw new Error(`x402 settle failed: HTTP ${res.status} ${await res.text()}`);
   }
 
-  const data = (await res.json()) as { success: boolean; transaction?: string; errorReason?: string };
+  const data = (await res.json()) as {
+    success: boolean;
+    transaction?: string;
+    errorReason?: string;
+    errorMessage?: string;
+  };
   if (!data.success) {
-    throw new Error(`x402 settle failed: ${data.errorReason ?? "unknown facilitator error"}`);
+    throw new Error(
+      `x402 settle failed: ${data.errorReason ?? data.errorMessage ?? "unknown facilitator error"}`
+    );
   }
   if (!data.transaction) {
-    throw new Error("x402 settle succeeded but returned no transaction hash");
+    throw new Error("x402 settle succeeded but returned no Hedera transaction ID");
   }
   return data.transaction;
 }
 
-/**
- * VALID verdict: never settle — the signed authorization simply expires.
- * Zero facilitator calls on valid attempts.
- */
+/** VALID verdict: do not submit; the partially-signed payment expires unused. */
 export function discardAuthorization(_authorization: X402Authorization): void {
-  // No-op on purpose.
+  // Intentionally empty: VALID never calls the facilitator.
 }

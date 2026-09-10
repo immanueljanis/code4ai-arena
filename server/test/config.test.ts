@@ -5,6 +5,7 @@ const validEnv = {
   HEDERA_TESTNET_RPC_URL: "https://testnet.hashio.io/api",
   HEDERA_USDC_TESTNET_ADDRESS: "0x534b2f3A21130d7a60830c2Df862319e593943A3",
   ARENA_ADDRESS: "0x8771D35f42e9cB46b7Ec55fb712DFEfC752f3ae0",
+  HEDERA_ARENA_ACCOUNT_ID: "0.0.1234",
   ACCESS_CONTROL_VAULT_ADDRESS: "0x73524775e7c01E862F8d0E381D1154d7939cC160",
   ROUNDING_VAULT_ADDRESS: "0x9Cb289aa00508D1B1eb8Aa1Eb21F552Eed4dA37A",
   TIME_WINDOW_VAULT_ADDRESS: "0xFf608EC643D5c10204c20dfe1A2a43ebC45CcCEd",
@@ -31,7 +32,7 @@ describe("loadConfig", () => {
       "0xFf608EC643D5c10204c20dfe1A2a43ebC45CcCEd"
     );
     expect(cfg.verifierKey).toBe(validEnv.VERIFIER_KEY);
-    expect(cfg.x402FacilitatorUrl).toBe("https://facilitator.blockydevs.com");
+    expect(cfg.x402FacilitatorUrl).toBe("https://api.testnet.blocky402.com");
     expect(cfg.erc8004MainnetKey).toBeUndefined();
   });
 

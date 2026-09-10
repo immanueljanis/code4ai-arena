@@ -11,6 +11,7 @@ import {
   settleStakeAuthorization,
   discardAuthorization,
   signStakeAuthorization,
+  stakePaymentRequirements,
   type X402Authorization,
 } from "./x402.ts";
 import { payout, slash, invalidatePool } from "./arena.ts";
@@ -61,21 +62,31 @@ function validateAuthorization(auth: X402Authorization): void {
   if (!authAccepted || typeof authAccepted !== "object") {
     throw Object.assign(new Error("x402Authorization.accepted is required"), { status: 400 });
   }
+  const expected = stakePaymentRequirements();
+  if (authAccepted.scheme !== expected.scheme || authAccepted.network !== expected.network) {
+    throw Object.assign(
+      new Error(`x402 payment must use Hedera exact (${expected.network})`),
+      { status: 400 }
+    );
+  }
   const payTo = authAccepted.payTo?.toLowerCase();
   const asset = authAccepted.asset?.toLowerCase();
-  if (payTo !== serverConfig.arenaAddress.toLowerCase()) {
+  if (payTo !== expected.payTo.toLowerCase()) {
     throw Object.assign(
-      new Error(`x402 payTo must be the Arena address (got ${authAccepted.payTo})`),
+      new Error(`x402 payTo must be the Arena account (got ${authAccepted.payTo})`),
       { status: 400 }
     );
   }
-  if (asset !== serverConfig.usdcAddress.toLowerCase()) {
-    throw Object.assign(
-      new Error(`x402 asset must be USDC (got ${authAccepted.asset})`),
-      { status: 400 }
-    );
+  if (asset !== expected.asset.toLowerCase()) {
+    throw Object.assign(new Error(`x402 asset must be USDC (got ${authAccepted.asset})`), {
+      status: 400,
+    });
   }
-  if (authAccepted.amount !== "1000000") {
+  if (
+    authAccepted.amount !== expected.amount ||
+    authAccepted.maxTimeoutSeconds !== expected.maxTimeoutSeconds ||
+    authAccepted.extra?.feePayer?.toLowerCase() !== expected.extra.feePayer.toLowerCase()
+  ) {
     throw Object.assign(
       new Error(`x402 amount must be the 1 USDC stake (got ${authAccepted.amount})`),
       { status: 400 }

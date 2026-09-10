@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from "bun:test";
 process.env.HEDERA_TESTNET_RPC_URL = "https://testnet.hashio.io/api";
 process.env.HEDERA_USDC_TESTNET_ADDRESS = "0x534b2f3A21130d7a60830c2Df862319e593943A3";
 process.env.ARENA_ADDRESS = "0x8771D35f42e9cB46b7Ec55fb712DFEfC752f3ae0";
+process.env.HEDERA_ARENA_ACCOUNT_ID = "0.0.1234";
 process.env.ACCESS_CONTROL_VAULT_ADDRESS = "0x73524775e7c01E862F8d0E381D1154d7939cC160";
 process.env.ROUNDING_VAULT_ADDRESS = "0x9Cb289aa00508D1B1eb8Aa1Eb21F552Eed4dA37A";
 process.env.TIME_WINDOW_VAULT_ADDRESS = "0xFf608EC643D5c10204c20dfe1A2a43ebC45CcCEd";
@@ -28,16 +29,16 @@ beforeAll(async () => {
 });
 
 const x402Auth = {
-  x402Version: 2,
-  payload: { authorization: {}, signature: "0x" + "aa".repeat(65) },
+  x402Version: 2 as const,
+  payload: { transaction: "dGVzdC10cmFuc2FjdGlvbg==" },
   accepted: {
     scheme: "exact",
-    network: "eip155:296",
+    network: "hedera:testnet",
     amount: "1000000",
-    asset: "0x534b2f3A21130d7a60830c2Df862319e593943A3",
-    payTo: "0x8771D35f42e9cB46b7Ec55fb712DFEfC752f3ae0",
+    asset: "0.0.429274",
+    payTo: "0.0.1234",
     maxTimeoutSeconds: 300,
-    extra: { name: "USDC", version: "2" },
+    extra: { feePayer: "0.0.7162784" },
   },
 };
 
@@ -121,7 +122,7 @@ describe("runSubmit — validation", () => {
       error = e as Error;
     }
     expect(error).toBeDefined();
-    expect(error!.message).toContain("payTo must be the Arena address");
+    expect(error!.message).toContain("payTo must be the Arena account");
   });
 
   it("rejects an authorization whose asset is not USDC", async () => {
