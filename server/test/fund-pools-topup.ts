@@ -5,7 +5,7 @@ import path from "node:path";
 
 // Run from server/ — Bun auto-loads server/.env (VERIFIER_KEY).
 const RPC = "https://testnet.hashio.io/api";
-const USDC = "0x534b2f3A21130d7a60830c2Df862319e593943A3";
+const USDC = "0x0000000000000000000000000000000000068cda";
 const ARENA = "0xb8c3e39305bdb70eb9a0c7ae848eecbfbf5293d5";
 
 const chain = { id: 296, name: "Hedera Testnet", nativeCurrency: { name: "HBAR", symbol: "HBAR", decimals: 18 }, rpcUrls: { default: { http: [RPC] } }, testnet: true } as const;

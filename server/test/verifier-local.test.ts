@@ -3,7 +3,7 @@ import { runPlaygroundVerification } from "../src/verifier-local.ts";
 
 // serverConfig (used for the deploy beneficiary) is lazy — set env before first call.
 process.env.HEDERA_TESTNET_RPC_URL = "http://127.0.0.1:8545";
-process.env.HEDERA_USDC_TESTNET_ADDRESS = "0x534b2f3A21130d7a60830c2Df862319e593943A3";
+process.env.HEDERA_USDC_TESTNET_ADDRESS = "0x0000000000000000000000000000000000068cda";
 process.env.ARENA_ADDRESS = "0x8771D35f42e9cB46b7Ec55fb712DFEfC752f3ae0";
 process.env.HEDERA_ARENA_ACCOUNT_ID = "0.0.1234";
 process.env.ACCESS_CONTROL_VAULT_ADDRESS = "0x73524775e7c01E862F8d0E381D1154d7939cC160";

@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 
 const RPC = "https://testnet.hashio.io/api";
-const USDC = "0x534b2f3A21130d7a60830c2Df862319e593943A3";
+const USDC = "0x0000000000000000000000000000000000068cda";
 const ARENA = "0x8771D35f42e9cB46b7Ec55fb712DFEfC752f3ae0";
 
 const chain = { id: 296, name: "Hedera Testnet", nativeCurrency: { name: "HBAR", symbol: "HBAR", decimals: 18 }, rpcUrls: { default: { http: [RPC] } }, testnet: true } as const;

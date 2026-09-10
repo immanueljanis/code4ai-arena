@@ -103,7 +103,7 @@ Pool berkurang, Activity feed + Leaderboard ter-update.
 | | Address / nilai |
 |---|---|
 | Verifier = Deployer | `0x7e369e5CbceB1775cf40678fbe5DDE57b59EC496` |
-| USDC (6 dec) | `0x534b2f3A21130d7a60830c2Df862319e593943A3` |
+| USDC (6 dec) | `0x0000000000000000000000000000000000068cda` |
 | Arena | `0xb8c3e39305bdb70eb9a0c7ae848eecbfbf5293d5` |
 
 > Top up HBAR: https://portal.hedera.com · USDC: mint langsung ke verifier.
