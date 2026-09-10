@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { keccak256, toBytes } from "viem";
+import { keccak256, parseEventLogs, toBytes } from "viem";
 import {
   createPublicClient,
   createWalletClient,
@@ -47,42 +47,110 @@ function arenaClients(): ArenaClients {
 
 const keyHash = (s: string) => keccak256(toBytes(s));
 
-/** INVALID verdict: fold the settled stake into the pool. Returns tx hash. */
+const RECEIPT_TIMEOUT_MS = 120_000;
+
+export const attemptKey = (attemptId: string): `0x${string}` => keyHash(attemptId);
+
+/** Whether an attempt has already been settled on-chain (Arena.settledAttempts). */
+export async function isAttemptSettled(
+  attemptId: string,
+  clients: ArenaClients = arenaClients()
+): Promise<boolean> {
+  return (await clients.publicClient.readContract({
+    address: serverConfig.arenaAddress,
+    abi: loadArenaAbi(),
+    functionName: "settledAttempts",
+    args: [attemptKey(attemptId)],
+  })) as boolean;
+}
+
+const normalize = (value: unknown): string =>
+  typeof value === "string" ? value.toLowerCase() : String(value);
+
+/**
+ * Broadcast an Arena settlement call, wait for a successful receipt, and confirm
+ * the emitted event matches every argument we sent. A missing event is only
+ * accepted when the attempt is already recorded on-chain (idempotent replay);
+ * an unconfirmed broadcast throws with the tx hash attached so callers can
+ * reconcile instead of re-paying.
+ */
+async function settleOnce(
+  clients: ArenaClients,
+  attemptId: string,
+  functionName: "slash" | "payout",
+  eventName: "Slashed" | "Paid",
+  args: readonly unknown[]
+): Promise<string> {
+  const abi = loadArenaAbi();
+  const hash = (await clients.walletClient.writeContract({
+    address: serverConfig.arenaAddress,
+    abi,
+    functionName,
+    args,
+  })) as `0x${string}`;
+
+  const receipt = await clients.publicClient.waitForTransactionReceipt({
+    hash,
+    timeout: RECEIPT_TIMEOUT_MS,
+  });
+  if (receipt.status !== "success") {
+    throw Object.assign(new Error(`Arena.${functionName} reverted`), {
+      txHash: hash,
+      settlementConfirmed: false,
+    });
+  }
+
+  const events = parseEventLogs({ abi, eventName, logs: receipt.logs }) as Array<{
+    args: Record<string, unknown>;
+  }>;
+  const expected = args.map(normalize);
+  const matched = events.some((event) => {
+    const actual = Object.values(event.args).map(normalize);
+    return actual.length === expected.length && actual.every((v, i) => v === expected[i]);
+  });
+  if (!matched && !(await isAttemptSettled(attemptId, clients))) {
+    throw Object.assign(new Error(`Arena.${functionName} did not settle the attempt`), {
+      txHash: hash,
+      settlementConfirmed: false,
+    });
+  }
+  return hash;
+}
+
+/** INVALID verdict: fold the settled stake into the pool. Returns a confirmed tx hash. */
 export async function slash(
   targetKey: string,
   agent: string,
   stakeAmount: bigint,
+  attemptId: string,
   clients: ArenaClients = arenaClients()
 ): Promise<string> {
-  return (await clients.walletClient.writeContract({
-    address: serverConfig.arenaAddress,
-    abi: loadArenaAbi(),
-    functionName: "slash",
-    args: [keyHash(targetKey), agent as Address, stakeAmount],
-  })) as string;
+  return settleOnce(clients, attemptId, "slash", "Slashed", [
+    keyHash(targetKey),
+    agent as Address,
+    stakeAmount,
+    attemptKey(attemptId),
+  ]);
 }
 
-/** VALID verdict: pay stake + bounty to the agent, deduct bounty from pool. Returns tx hash. */
+/** VALID verdict: pay stake + bounty to the agent from the pool. Returns a confirmed tx hash. */
 export async function payout(
   targetKey: string,
   invariantId: string,
   agent: string,
   stakeAmount: bigint,
   bountyAmount: bigint,
+  attemptId: string,
   clients: ArenaClients = arenaClients()
 ): Promise<string> {
-  return (await clients.walletClient.writeContract({
-    address: serverConfig.arenaAddress,
-    abi: loadArenaAbi(),
-    functionName: "payout",
-    args: [
-      keyHash(targetKey),
-      keyHash(invariantId),
-      agent as Address,
-      stakeAmount,
-      bountyAmount,
-    ],
-  })) as string;
+  return settleOnce(clients, attemptId, "payout", "Paid", [
+    keyHash(targetKey),
+    keyHash(invariantId),
+    agent as Address,
+    stakeAmount,
+    bountyAmount,
+    attemptKey(attemptId),
+  ]);
 }
 
 /**

@@ -111,6 +111,8 @@ export async function runSubmit(
   // calls can be signed by the agent's own address.
   const agentKey = decryptPrivateKey(agent.encryptedPrivateKey, serverConfig.serverWalletSecret) as `0x${string}`;
 
+  const attemptId = crypto.randomUUID();
+
   // 0. Fund the agent's stake (USDC) from the verifier — custody mode. The
   //    verifier (deployer) holds testnet USDC and tops the agent wallet up.
   await deps.fundAgent(agent.walletAddress as `0x${string}`);
@@ -136,11 +138,12 @@ export async function runSubmit(
       meta.invariantId,
       agent.walletAddress,
       STAKE,
-      BigInt(meta.bountyAmount)
+      BigInt(meta.bountyAmount),
+      attemptId
     );
   } else {
     settlementTxHash = await deps.settleAuth(auth);
-    await deps.doSlash(targetKey, agent.walletAddress, STAKE);
+    await deps.doSlash(targetKey, agent.walletAddress, STAKE, attemptId);
   }
   invalidatePool(targetKey); // pool changed on-chain — refresh reads
 

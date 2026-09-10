@@ -23,10 +23,18 @@ contract Arena {
 
     mapping(bytes32 => Target) public targets;
     mapping(bytes32 => bool) public claimed; // keccak(targetKey, invariantId) => claimed
+    mapping(bytes32 => bool) public settledAttempts;
 
     event PoolFunded(bytes32 targetKey, uint256 amount);
-    event Slashed(bytes32 targetKey, address agent, uint256 stakeAmount);
-    event Paid(bytes32 targetKey, bytes32 invariantId, address agent, uint256 stakeAmount, uint256 bountyAmount);
+    event Slashed(bytes32 targetKey, address agent, uint256 stakeAmount, bytes32 attemptId);
+    event Paid(
+        bytes32 targetKey,
+        bytes32 invariantId,
+        address agent,
+        uint256 stakeAmount,
+        uint256 bountyAmount,
+        bytes32 attemptId
+    );
     event UsdcAssociated(int64 responseCode);
 
     modifier onlyVerifier() {
@@ -57,18 +65,29 @@ contract Arena {
     /// Admin funds a target's pool. Caller must have approved this contract
     /// for `amount` USDC beforehand.
     function fundPool(bytes32 targetKey, uint256 amount) external onlyAdmin {
+        require(usdc.transferFrom(msg.sender, address(this), amount), "transfer failed");
         targets[targetKey].exists = true;
         targets[targetKey].pool += amount;
-        usdc.transferFrom(msg.sender, address(this), amount);
         emit PoolFunded(targetKey, amount);
     }
 
     /// INVALID verdict: the stake (already moved into this contract by the
     /// x402 settlement leg, executed by the server before calling this) is
     /// folded into the pool.
-    function slash(bytes32 targetKey, address agent, uint256 stakeAmount) external onlyVerifier {
+    function slash(bytes32 targetKey, address agent, uint256 stakeAmount, bytes32 attemptId)
+        external
+        onlyVerifier
+        returns (bool)
+    {
+        require(attemptId != bytes32(0), "invalid attempt");
+        if (settledAttempts[attemptId]) {
+            return false;
+        }
+
+        settledAttempts[attemptId] = true;
         targets[targetKey].pool += stakeAmount;
-        emit Slashed(targetKey, agent, stakeAmount);
+        emit Slashed(targetKey, agent, stakeAmount, attemptId);
+        return true;
     }
 
     /// VALID verdict: pays stake + bounty to the agent. `invariantId` dedups
@@ -78,16 +97,25 @@ contract Arena {
         bytes32 invariantId,
         address agent,
         uint256 stakeAmount,
-        uint256 bountyAmount
-    ) external onlyVerifier {
+        uint256 bountyAmount,
+        bytes32 attemptId
+    ) external onlyVerifier returns (bool) {
+        require(attemptId != bytes32(0), "invalid attempt");
+        if (settledAttempts[attemptId]) {
+            return false;
+        }
+
         bytes32 claimKey = keccak256(abi.encodePacked(targetKey, invariantId));
         require(!claimed[claimKey], "already claimed");
         claimed[claimKey] = true;
+        settledAttempts[attemptId] = true;
 
-        require(targets[targetKey].pool >= bountyAmount, "pool underfunded");
-        targets[targetKey].pool -= bountyAmount;
+        uint256 paymentAmount = stakeAmount + bountyAmount;
+        require(targets[targetKey].pool >= paymentAmount, "pool underfunded");
+        targets[targetKey].pool -= paymentAmount;
 
-        usdc.transfer(agent, stakeAmount + bountyAmount);
-        emit Paid(targetKey, invariantId, agent, stakeAmount, bountyAmount);
+        require(usdc.transfer(agent, paymentAmount), "transfer failed");
+        emit Paid(targetKey, invariantId, agent, stakeAmount, bountyAmount, attemptId);
+        return true;
     }
 }
