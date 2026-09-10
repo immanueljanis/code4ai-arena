@@ -52,6 +52,7 @@ function mockDeps(verdict: "VALID" | "INVALID") {
     writeFeedback: async () => "0x" + "33".repeat(32),
     signAuth: async () => x402Auth,
     verifyAuth: async () => ({ payer: "0.0.4242", paymentDigest: "sha256:test-digest" }),
+    resolvePayer: async () => "0.0.4242",
     fundAgent: async () => null,
   } as SubmitDeps;
 }
@@ -112,6 +113,35 @@ describe("runSubmit — INVALID verdict", () => {
     const attemptId = settleCalls[0][1] as string;
     expect(attemptId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
     expect(slashCalls[0][3]).toBe(attemptId);
+  }, 30000);
+
+  it("pins the settlement payer only for a client-supplied authorization", async () => {
+    const settleCalls: unknown[][] = [];
+    const deps = {
+      ...mockDeps("INVALID"),
+      settleAuth: async (...args: unknown[]) => {
+        settleCalls.push(args);
+        return "0x" + "22".repeat(32);
+      },
+    } as SubmitDeps;
+
+    const custodyAgent = await insertAgent({
+      label: "payer-custody",
+      walletAddress: generateAgentWallet().address,
+      encryptedPrivateKey: encryptPrivateKey(generateAgentWallet().privateKey, "test-secret"),
+      erc8004TokenId: "mock-id:payer-custody",
+    });
+    await runSubmit(custodyAgent, "access-control-vault", [], undefined, deps);
+    expect(settleCalls[0][3]).toBeUndefined();
+
+    const clientAgent = await insertAgent({
+      label: "payer-client",
+      walletAddress: generateAgentWallet().address,
+      encryptedPrivateKey: encryptPrivateKey(generateAgentWallet().privateKey, "test-secret"),
+      erc8004TokenId: "mock-id:payer-client",
+    });
+    await runSubmit(clientAgent, "access-control-vault", [], x402Auth, deps);
+    expect(settleCalls[1][3]).toBe("0.0.4242");
   }, 30000);
 
   it("rejects a mismatched client authorization before funding the agent", async () => {

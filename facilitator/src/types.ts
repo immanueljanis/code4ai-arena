@@ -19,7 +19,7 @@ export interface ArenaTransferPolicy {
   tokenId: string;
   arenaAccountId: string;
   feePayerAccountId: string;
-  registeredAgentAccountId: string;
+  registeredAgentAccountId?: string;
   stakeAmount: string;
   maxTimeoutSeconds: number;
   allowedNodeAccountIds: readonly string[];

@@ -355,3 +355,42 @@ describe("settlement attempt identity", () => {
     expect(response.status).toBe(200);
   });
 });
+
+describe("registered payer binding", () => {
+  test("settles when the arena server pins the account that actually pays", async () => {
+    const response = await post(
+      service(stub),
+      "/settle",
+      settlementBody(payment(), { payer: policy.registeredAgentAccountId ?? "0.0.1001" }),
+      SECRET
+    );
+    expect(response.status).toBe(200);
+    expect(stub.signAndSubmitTransaction).toHaveBeenCalledTimes(1);
+  });
+
+  test("refuses to settle a transfer debiting an account the server did not name", async () => {
+    const local = stubs();
+    const response = await post(
+      service(local),
+      "/settle",
+      settlementBody(payment(), { payer: "0.0.9999" }),
+      SECRET
+    );
+    expect(response.status).toBe(422);
+    expect(await response.json()).toMatchObject({ errorReason: "stake_transfer_mismatch" });
+    expect(local.reserve).not.toHaveBeenCalled();
+    expect(local.signAndSubmitTransaction).not.toHaveBeenCalled();
+  });
+
+  test("rejects a malformed pinned payer", async () => {
+    const local = stubs();
+    const response = await post(
+      service(local),
+      "/settle",
+      settlementBody(payment(), { payer: "0xa11ce" }),
+      SECRET
+    );
+    expect(response.status).toBe(400);
+    expect(local.signAndSubmitTransaction).not.toHaveBeenCalled();
+  });
+});

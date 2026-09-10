@@ -203,12 +203,14 @@ function validateBody(body: ProtoValue, policy: ArenaTransferPolicy, now: number
   const [first, second] = parsed;
   if (first.accountId === second.accountId || first.amount === 0n || second.amount === 0n) fail("invalid_token_transfer_entries");
   const stake = bigint(policy.stakeAmount, "invalid_stake_policy");
-  const payer = parsed.find((entry) => entry.accountId === policy.registeredAgentAccountId && entry.amount === -stake);
+  const payer = policy.registeredAgentAccountId
+    ? parsed.find((entry) => entry.accountId === policy.registeredAgentAccountId && entry.amount === -stake)
+    : parsed.find((entry) => entry.accountId !== policy.arenaAccountId && entry.amount === -stake);
   const arena = parsed.find((entry) => entry.accountId === policy.arenaAccountId && entry.amount === stake);
   if (!payer || !arena || parsed[0].amount + parsed[1].amount !== 0n) fail("stake_transfer_mismatch");
   const seconds = bigint((transactionId.transactionValidStart as ProtoValue).seconds, "invalid_transaction_start");
   const nanos = bigint((transactionId.transactionValidStart as ProtoValue).nanos ?? 0, "invalid_transaction_start");
-  return { transactionId: `${feePayer}@${seconds}.${nanos}`, payer: policy.registeredAgentAccountId };
+  return { transactionId: `${feePayer}@${seconds}.${nanos}`, payer: payer.accountId };
 }
 
 export function paymentDigest(transaction: string): string {

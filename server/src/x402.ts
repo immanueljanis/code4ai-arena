@@ -50,7 +50,7 @@ export function stakePaymentRequirements(
   };
 }
 
-async function resolveAgentAccountId(agentAddress: `0x${string}`): Promise<string> {
+export async function resolveAgentAccountId(agentAddress: `0x${string}`): Promise<string> {
   const client = createHederaClient(HEDERA_NETWORK);
   try {
     return (await AccountId.fromEvmAddress(0, 0, agentAddress).populateAccountNum(client)).toString();
@@ -133,6 +133,7 @@ export async function settleStakeAuthorization(
   authorization: X402Authorization,
   attemptId?: string,
   paymentDigest?: string,
+  payer?: string,
   facilitatorUrl: string = serverConfig.x402FacilitatorUrl
 ): Promise<string> {
   const secret = serverConfig.x402SettlementSecret;
@@ -148,6 +149,7 @@ export async function settleStakeAuthorization(
       paymentRequirements: authorization.accepted,
       ...(attemptId ? { attemptId } : {}),
       ...(paymentDigest ? { paymentDigest } : {}),
+      ...(payer ? { payer } : {}),
     }),
   });
 

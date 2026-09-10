@@ -89,9 +89,18 @@ export function createFacilitatorService(options: FacilitatorServiceOptions) {
     const attemptId = /^[A-Za-z0-9_-]{1,64}$/.test(rawAttemptId) ? rawAttemptId : "";
     const claimedDigest = typeof body.paymentDigest === "string" ? body.paymentDigest : "";
     if (!payment || !attemptId || !claimedDigest) return jsonError(c, 400, "invalid_settlement_request");
+    // The arena server knows which agent it registered for this attempt; pinning
+    // it here is what stops a settlement debiting some other account.
+    const expectedPayer = typeof body.payer === "string" ? body.payer : undefined;
+    if (expectedPayer !== undefined && !/^\d+\.\d+\.\d+$/.test(expectedPayer)) {
+      return jsonError(c, 400, "invalid_settlement_request");
+    }
+    const settlementPolicy: ArenaTransferPolicy = expectedPayer
+      ? { ...options.policy, registeredAgentAccountId: expectedPayer }
+      : options.policy;
     let validated;
     try {
-      validated = validateArenaPayment(payment.authorization, payment.requirements, options.policy, now());
+      validated = validateArenaPayment(payment.authorization, payment.requirements, settlementPolicy, now());
       if (claimedDigest !== validated.paymentDigest || paymentDigest(validated.transaction) !== claimedDigest) return jsonError(c, 409, "payment_digest_mismatch");
       const signature = await options.signer.verifyPayerSignature({
         payer: validated.payer,

@@ -11,6 +11,7 @@ import { runOnchainVerification } from "./verifier-onchain.ts";
 import {
   settleStakeAuthorization,
   discardAuthorization,
+  resolveAgentAccountId,
   signStakeAuthorization,
   stakePaymentRequirements,
   verifyStakeAuthorization,
@@ -71,6 +72,7 @@ export interface SubmitDeps {
   signAuth: typeof signStakeAuthorization;
   settleAuth: typeof settleStakeAuthorization;
   verifyAuth: typeof verifyStakeAuthorization;
+  resolvePayer: typeof resolveAgentAccountId;
   discardAuth: typeof discardAuthorization;
   doPayout: typeof payout;
   doSlash: typeof slash;
@@ -83,6 +85,7 @@ const realDeps: SubmitDeps = {
   signAuth: signStakeAuthorization,
   settleAuth: settleStakeAuthorization,
   verifyAuth: verifyStakeAuthorization,
+  resolvePayer: resolveAgentAccountId,
   discardAuth: discardAuthorization,
   doPayout: payout,
   doSlash: slash,
@@ -190,7 +193,14 @@ export async function runSubmit(
   //     proof runs, so an unpayable or unbound stake never reaches settlement.
   const { paymentDigest } = await deps.verifyAuth(auth);
 
-  // 0e. The signed bytes are recorded before any submission so a crash resumes
+  // 0e. A custody-signed authorization is the agent's own account by
+  //     construction. A client-supplied one is not, so pin the account the
+  //     settlement is allowed to debit to this agent before anything settles.
+  const expectedPayer = x402Authorization
+    ? await deps.resolvePayer(agent.walletAddress as `0x${string}`)
+    : undefined;
+
+  // 0f. The signed bytes are recorded before any submission so a crash resumes
   //     the same authorization instead of generating a replacement payment.
   await updateSubmissionAttempt(attemptId, "proving", {
     paymentAuthorization: encryptPrivateKey(
@@ -223,7 +233,7 @@ export async function runSubmit(
     );
   } else {
     await updateSubmissionAttempt(attemptId, "payment_pending");
-    settlementTxHash = await deps.settleAuth(auth, attemptId, paymentDigest);
+    settlementTxHash = await deps.settleAuth(auth, attemptId, paymentDigest, expectedPayer);
     await updateSubmissionAttempt(attemptId, "accounting_pending", {
       settlementReceipt: settlementTxHash,
     });
