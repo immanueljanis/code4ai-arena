@@ -2,11 +2,16 @@
 pragma solidity ^0.8.24;
 
 import "./interfaces/IERC20.sol";
+import "./interfaces/IHederaTokenService.sol";
 
 /// @notice Holds per-target USDC bounty pools and settles findings.
 /// Only `verifier` (the code4ai server's operator address) may call
 /// slash/payout. Implements R2 (settle-once) and R3 (per-invariant pools).
 contract Arena {
+    address private constant HTS_PRECOMPILE = address(0x167);
+    int64 private constant HTS_SUCCESS = 22;
+    int64 private constant HTS_ALREADY_ASSOCIATED = 194;
+
     IERC20 public immutable usdc;
     address public verifier;
     address public admin;
@@ -22,6 +27,7 @@ contract Arena {
     event PoolFunded(bytes32 targetKey, uint256 amount);
     event Slashed(bytes32 targetKey, address agent, uint256 stakeAmount);
     event Paid(bytes32 targetKey, bytes32 invariantId, address agent, uint256 stakeAmount, uint256 bountyAmount);
+    event UsdcAssociated(int64 responseCode);
 
     modifier onlyVerifier() {
         require(msg.sender == verifier, "not verifier");
@@ -37,6 +43,15 @@ contract Arena {
         usdc = IERC20(_usdc);
         verifier = _verifier;
         admin = msg.sender;
+    }
+
+    function associateUsdc() external onlyAdmin returns (int64 responseCode) {
+        responseCode = IHederaTokenService(HTS_PRECOMPILE).associateToken(address(this), address(usdc));
+        require(
+            responseCode == HTS_SUCCESS || responseCode == HTS_ALREADY_ASSOCIATED,
+            "HTS association failed"
+        );
+        emit UsdcAssociated(responseCode);
     }
 
     /// Admin funds a target's pool. Caller must have approved this contract

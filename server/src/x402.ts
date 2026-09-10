@@ -1,16 +1,3 @@
-/**
- * Hedera x402 spike (pinned to @x402/hedera 2.25.0):
- * - `ExactHederaScheme` creates a v2 payload whose scheme payload is
- *   `{ transaction: base64 }`, a frozen `TransferTransaction` signed only by
- *   the payer. The facilitator adds its fee-payer signature and submits it.
- * - Hedera requirements use CAIP-2 `hedera:testnet`, HTS token ID / account ID
- *   values, and `extra.feePayer`; EVM addresses are only used by the contract
- *   transaction layer and are not valid payment requirement values.
- * - Settlement is the standard facilitator `POST /settle` body with
- *   `paymentPayload` and `paymentRequirements`; success returns a Hedera
- *   transaction ID in `transaction`.
- */
-
 import {
   AccountId,
   PrivateKey,
@@ -22,7 +9,6 @@ import { serverConfig } from "./config.ts";
 
 const HEDERA_NETWORK = "hedera:testnet" as const;
 
-/** Payment requirements accepted by the Hedera x402 exact scheme. */
 export interface X402Requirements {
   scheme: "exact";
   network: typeof HEDERA_NETWORK;
@@ -33,7 +19,6 @@ export interface X402Requirements {
   extra: { feePayer: string };
 }
 
-/** x402 v2 payload with a partially-signed Hedera transfer. */
 export interface X402Authorization {
   x402Version: 2;
   accepted: X402Requirements;
@@ -50,7 +35,6 @@ function asHederaAccountId(value: string): string {
   return AccountId.fromEvmAddress(0, 0, value).toString();
 }
 
-/** Build the exact requirements that server and client payments must match. */
 export function stakePaymentRequirements(
   payTo: string = serverConfig.hederaArenaAccountId,
   amountAtomic: string = "1000000"
@@ -69,18 +53,12 @@ export function stakePaymentRequirements(
 async function resolveAgentAccountId(agentAddress: `0x${string}`): Promise<string> {
   const client = createHederaClient(HEDERA_NETWORK);
   try {
-    // Agent wallets are created in EVM form. Mirror Node resolves that alias
-    // to the concrete Hedera account required by facilitator verification.
     return (await AccountId.fromEvmAddress(0, 0, agentAddress).populateAccountNum(client)).toString();
   } finally {
     client.close();
   }
 }
 
-/**
- * Create an HTS-USDC transfer signed by the agent but incomplete until the
- * facilitator adds its fee-payer signature and submits it.
- */
 export async function signStakeAuthorization(
   agentKey: `0x${string}`,
   payTo: string = serverConfig.hederaArenaAccountId,
@@ -102,7 +80,6 @@ export async function signStakeAuthorization(
   };
 }
 
-/** Settle the captured Hedera payment exactly once through the facilitator. */
 export async function settleStakeAuthorization(
   authorization: X402Authorization,
   facilitatorUrl: string = serverConfig.x402FacilitatorUrl
@@ -138,7 +115,5 @@ export async function settleStakeAuthorization(
   return data.transaction;
 }
 
-/** VALID verdict: do not submit; the partially-signed payment expires unused. */
 export function discardAuthorization(_authorization: X402Authorization): void {
-  // Intentionally empty: VALID never calls the facilitator.
 }

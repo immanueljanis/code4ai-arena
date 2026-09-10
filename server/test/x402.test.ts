@@ -37,7 +37,6 @@ describe("settleStakeAuthorization", () => {
     let capturedUrl = "";
     let capturedBody: Record<string, unknown> = {};
 
-    // @ts-expect-error - fetch is swapped per-test
     globalThis.fetch = async (url: string, init: RequestInit) => {
       capturedUrl = url;
       capturedBody = JSON.parse(String(init.body));
@@ -67,7 +66,6 @@ describe("settleStakeAuthorization", () => {
   });
 
   it("throws when the facilitator reports failure", async () => {
-    // @ts-expect-error - fetch is swapped per-test
     globalThis.fetch = async () =>
       new Response(JSON.stringify({ success: false, errorReason: "bad_signature" }), {
         status: 200,
@@ -78,7 +76,6 @@ describe("settleStakeAuthorization", () => {
   });
 
   it("throws on non-2xx facilitator responses", async () => {
-    // @ts-expect-error - fetch is swapped per-test
     globalThis.fetch = async () =>
       new Response(JSON.stringify({ error: "nope" }), {
         status: 500,
@@ -91,9 +88,6 @@ describe("settleStakeAuthorization", () => {
 
 describe("signStakeAuthorization", () => {
   it("creates a base64 partially-signed HTS transfer", async () => {
-    // Mirror Node lookup is mocked; the Hedera SDK still freezes and signs the
-    // real TransferTransaction shape locally.
-    // @ts-expect-error - fetch is swapped per-test
     globalThis.fetch = async () =>
       new Response(JSON.stringify({ account: "0.0.5678" }), { status: 200 });
 

@@ -19,6 +19,7 @@ contract Deploy is Script {
         RoundingVault roundingTarget = new RoundingVault();
         TimeWindowVault timeTarget = new TimeWindowVault(vm.addr(deployerKey));
         Arena arena = new Arena(usdc, verifier);
+        arena.associateUsdc();
 
         vm.stopBroadcast();
 
@@ -26,5 +27,6 @@ contract Deploy is Script {
         console.log("RoundingVault:", address(roundingTarget));
         console.log("TimeWindowVault:", address(timeTarget));
         console.log("Arena:", address(arena));
+        console.log("Arena USDC association: complete");
     }
 }

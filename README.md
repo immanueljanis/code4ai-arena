@@ -276,6 +276,17 @@ exploit — the server funds the stake and settles onchain).
 
 ## ☁️ Deploy
 
+For Hedera deployments, `contracts/script/Deploy.s.sol` calls
+`Arena.associateUsdc()` immediately after constructing the Arena. That method
+invokes the HTS association precompile at `0x167` from the Arena account and
+accepts both a fresh association and the already-associated response. If a
+deployment needs a manual retry, run:
+
+```bash
+cast send "$ARENA_ADDRESS" "associateUsdc()" \
+  --rpc-url "$HEDERA_TESTNET_RPC_URL" --private-key "$DEPLOYER_PRIVATE_KEY"
+```
+
 The repo ships a `Dockerfile` that builds the contract artifacts with Foundry,
 then runs the Bun server (with `anvil` for the playground verifier).
 
