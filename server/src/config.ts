@@ -23,6 +23,7 @@ export interface ServerConfig {
   serverWalletSecret: string;
   x402FacilitatorUrl: string;
   hederaFacilitatorAccountId: string;
+  x402SettlementSecret?: string;
   erc8004MainnetKey?: string;
 }
 
@@ -51,7 +52,11 @@ export function loadConfig(env: Record<string, string | undefined>): ServerConfi
   let settlementTokenId: string;
   let settlementTokenAddress: `0x${string}`;
   if (settlementProfile === "demo-hts") {
-    for (const key of ["X402_FACILITATOR_URL", "X402_FACILITATOR_ACCOUNT_ID"] as const) {
+    for (const key of [
+      "X402_FACILITATOR_URL",
+      "X402_FACILITATOR_ACCOUNT_ID",
+      "X402_SETTLEMENT_SECRET",
+    ] as const) {
       if (!env[key]?.trim()) throw new Error(`missing required env var ${key} for demo-hts`);
     }
     try {
@@ -124,6 +129,7 @@ export function loadConfig(env: Record<string, string | undefined>): ServerConfi
       "X402_FACILITATOR_ACCOUNT_ID",
       "0.0.7162784"
     ),
+    x402SettlementSecret: env.X402_SETTLEMENT_SECRET?.trim() || undefined,
     erc8004MainnetKey: env.ERC8004_MAINNET_KEY || undefined,
   };
 }

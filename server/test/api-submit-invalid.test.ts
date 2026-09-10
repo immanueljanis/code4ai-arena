@@ -51,6 +51,7 @@ function mockDeps(verdict: "VALID" | "INVALID") {
     doSlash: async () => "0x" + "44".repeat(32),
     writeFeedback: async () => "0x" + "33".repeat(32),
     signAuth: async () => x402Auth,
+    verifyAuth: async () => ({ payer: "0.0.4242", paymentDigest: "sha256:test-digest" }),
     fundAgent: async () => null,
   } as SubmitDeps;
 }
@@ -78,6 +79,105 @@ describe("runSubmit — INVALID verdict", () => {
     expect(mine).toBeDefined();
     expect(mine!.verdict).toBe("INVALID");
     expect(mine!.settlementTxHash).toBe("0x" + "22".repeat(32));
+  }, 30000);
+
+  it("binds settlement and slash to one attempt id and the verified digest", async () => {
+    const wallet = generateAgentWallet();
+    const agentId = await insertAgent({
+      label: "attempt-binding",
+      walletAddress: wallet.address,
+      encryptedPrivateKey: encryptPrivateKey(wallet.privateKey, "test-secret"),
+      erc8004TokenId: "mock-id:attempt",
+    });
+
+    const settleCalls: unknown[][] = [];
+    const slashCalls: unknown[][] = [];
+    const deps = {
+      ...mockDeps("INVALID"),
+      settleAuth: async (...args: unknown[]) => {
+        settleCalls.push(args);
+        return "0x" + "22".repeat(32);
+      },
+      doSlash: async (...args: unknown[]) => {
+        slashCalls.push(args);
+        return "0x" + "44".repeat(32);
+      },
+    } as SubmitDeps;
+
+    await runSubmit(agentId, "access-control-vault", [], undefined, deps);
+
+    expect(settleCalls).toHaveLength(1);
+    expect(slashCalls).toHaveLength(1);
+    expect(settleCalls[0][2]).toBe("sha256:test-digest");
+    const attemptId = settleCalls[0][1] as string;
+    expect(attemptId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    expect(slashCalls[0][3]).toBe(attemptId);
+  }, 30000);
+
+  it("rejects a mismatched client authorization before funding the agent", async () => {
+    const wallet = generateAgentWallet();
+    const agentId = await insertAgent({
+      label: "no-fund-on-bad-auth",
+      walletAddress: wallet.address,
+      encryptedPrivateKey: encryptPrivateKey(wallet.privateKey, "test-secret"),
+      erc8004TokenId: "mock-id:no-fund",
+    });
+
+    let funded = 0;
+    let verified = 0;
+    const deps = {
+      ...mockDeps("INVALID"),
+      fundAgent: async () => {
+        funded += 1;
+        return null;
+      },
+      verifyAuth: async () => {
+        verified += 1;
+        return { payer: "0.0.4242", paymentDigest: "sha256:test-digest" };
+      },
+    } as SubmitDeps;
+    const badAuth = { ...x402Auth, accepted: { ...x402Auth.accepted, amount: "9000000" } };
+
+    let error: Error | undefined;
+    try {
+      await runSubmit(agentId, "access-control-vault", [], badAuth, deps);
+    } catch (e) {
+      error = e as Error;
+    }
+    expect(error?.message).toContain("stake");
+    expect(funded).toBe(0);
+    expect(verified).toBe(0);
+  }, 30000);
+
+  it("does not prove when the facilitator rejects the signed payment", async () => {
+    const wallet = generateAgentWallet();
+    const agentId = await insertAgent({
+      label: "verify-rejects",
+      walletAddress: wallet.address,
+      encryptedPrivateKey: encryptPrivateKey(wallet.privateKey, "test-secret"),
+      erc8004TokenId: "mock-id:verify-rejects",
+    });
+
+    let proved = 0;
+    const deps = {
+      ...mockDeps("INVALID"),
+      verifyAuth: async () => {
+        throw Object.assign(new Error("x402 verify rejected the stake payment: payer_signature_invalid"), { status: 402 });
+      },
+      verify: async () => {
+        proved += 1;
+        return { verdict: "INVALID" as const, exploitTxHash: "0x" + "11".repeat(32) };
+      },
+    } as SubmitDeps;
+
+    let error: Error | undefined;
+    try {
+      await runSubmit(agentId, "access-control-vault", [], undefined, deps);
+    } catch (e) {
+      error = e as Error;
+    }
+    expect(error?.message).toContain("payer_signature_invalid");
+    expect(proved).toBe(0);
   }, 30000);
 });
 

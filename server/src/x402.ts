@@ -80,17 +80,74 @@ export async function signStakeAuthorization(
   };
 }
 
-export async function settleStakeAuthorization(
+export interface X402Verification {
+  payer?: string;
+  paymentDigest?: string;
+}
+
+/**
+ * Read-only facilitator check of the signed payment: payer signature, token
+ * association/balance preflight and the decoded transfer policy. Never submits.
+ * Run this before proving so an unpayable stake cannot reach the exploit stage.
+ */
+export async function verifyStakeAuthorization(
   authorization: X402Authorization,
   facilitatorUrl: string = serverConfig.x402FacilitatorUrl
-): Promise<string> {
-  const res = await fetch(`${facilitatorUrl}/settle`, {
+): Promise<X402Verification> {
+  const res = await fetch(`${facilitatorUrl}/verify`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
       x402Version: authorization.x402Version,
       paymentPayload: authorization,
       paymentRequirements: authorization.accepted,
+    }),
+  });
+
+  const data = (await res.json().catch(() => ({}))) as {
+    isValid?: boolean;
+    payer?: string;
+    paymentDigest?: string;
+    errorReason?: string;
+    errorMessage?: string;
+  };
+  if (!res.ok || data.isValid !== true) {
+    throw Object.assign(
+      new Error(
+        `x402 verify rejected the stake payment: ${
+          data.errorReason ?? data.errorMessage ?? `HTTP ${res.status}`
+        }`
+      ),
+      { status: 402 }
+    );
+  }
+  return { payer: data.payer, paymentDigest: data.paymentDigest };
+}
+
+/**
+ * Submit the INVALID-verdict stake payment. `attemptId` and `paymentDigest`
+ * bind the request to one journalled attempt so a replayed call settles at most
+ * once; the bearer secret is what authorizes settlement at all.
+ */
+export async function settleStakeAuthorization(
+  authorization: X402Authorization,
+  attemptId?: string,
+  paymentDigest?: string,
+  facilitatorUrl: string = serverConfig.x402FacilitatorUrl
+): Promise<string> {
+  const secret = serverConfig.x402SettlementSecret;
+  const res = await fetch(`${facilitatorUrl}/settle`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      ...(secret ? { authorization: `Bearer ${secret}` } : {}),
+    },
+    body: JSON.stringify({
+      x402Version: authorization.x402Version,
+      paymentPayload: authorization,
+      paymentRequirements: authorization.accepted,
+      ...(attemptId ? { attemptId } : {}),
+      ...(paymentDigest ? { paymentDigest } : {}),
     }),
   });
 

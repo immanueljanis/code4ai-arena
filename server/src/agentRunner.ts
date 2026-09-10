@@ -12,6 +12,7 @@ import {
   discardAuthorization,
   signStakeAuthorization,
   stakePaymentRequirements,
+  verifyStakeAuthorization,
   type X402Authorization,
 } from "./x402.ts";
 import { payout, slash, invalidatePool } from "./arena.ts";
@@ -35,6 +36,7 @@ export interface SubmitDeps {
   verify: typeof runOnchainVerification;
   signAuth: typeof signStakeAuthorization;
   settleAuth: typeof settleStakeAuthorization;
+  verifyAuth: typeof verifyStakeAuthorization;
   discardAuth: typeof discardAuthorization;
   doPayout: typeof payout;
   doSlash: typeof slash;
@@ -46,6 +48,7 @@ const realDeps: SubmitDeps = {
   verify: runOnchainVerification,
   signAuth: signStakeAuthorization,
   settleAuth: settleStakeAuthorization,
+  verifyAuth: verifyStakeAuthorization,
   discardAuth: discardAuthorization,
   doPayout: payout,
   doSlash: slash,
@@ -113,14 +116,22 @@ export async function runSubmit(
 
   const attemptId = crypto.randomUUID();
 
-  // 0. Fund the agent's stake (USDC) from the verifier — custody mode. The
+  // 0. A client-supplied authorization is checked before any spending, so a
+  //    mismatched stake cannot make the server fund the agent.
+  if (x402Authorization) validateAuthorization(x402Authorization);
+
+  // 0b. Fund the agent's stake (USDC) from the verifier — custody mode. The
   //    verifier (deployer) holds testnet USDC and tops the agent wallet up.
   await deps.fundAgent(agent.walletAddress as `0x${string}`);
 
-  // 0b. Stake authorization: use the client-signed one if provided (validate
-  //     it strictly), otherwise sign on the agent's behalf (custody mode).
+  // 0c. Stake authorization: use the client-signed one if provided, otherwise
+  //     sign on the agent's behalf (custody mode).
   const auth = x402Authorization ?? (await deps.signAuth(agentKey));
   validateAuthorization(auth);
+
+  // 0d. Read-only facilitator check of the signed bytes and payer before the
+  //     proof runs, so an unpayable or unbound stake never reaches settlement.
+  const { paymentDigest } = await deps.verifyAuth(auth);
 
   // 1. Prove on-chain (fresh target instance).
   const { verdict, exploitTxHash } = await deps.verify(
@@ -142,7 +153,7 @@ export async function runSubmit(
       attemptId
     );
   } else {
-    settlementTxHash = await deps.settleAuth(auth);
+    settlementTxHash = await deps.settleAuth(auth, attemptId, paymentDigest);
     await deps.doSlash(targetKey, agent.walletAddress, STAKE, attemptId);
   }
   invalidatePool(targetKey); // pool changed on-chain — refresh reads

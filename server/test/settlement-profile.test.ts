@@ -19,6 +19,7 @@ const demo = {
   DEMO_HTS_TOKEN_ID: "0.0.1234567",
   X402_FACILITATOR_URL: "http://localhost:4020",
   X402_FACILITATOR_ACCOUNT_ID: "0.0.1235",
+  X402_SETTLEMENT_SECRET: "test-settlement-secret",
 };
 
 describe("settlement profiles", () => {
@@ -127,6 +128,13 @@ describe("settlement profiles", () => {
       });
     }
   }
+
+  it("requires a settlement secret for the self-hosted facilitator", () => {
+    expect(() => loadConfig({ ...demo, X402_SETTLEMENT_SECRET: undefined })).toThrow(/X402_SETTLEMENT_SECRET/);
+    expect(() => loadConfig({ ...demo, X402_SETTLEMENT_SECRET: "   " })).toThrow(/X402_SETTLEMENT_SECRET/);
+    expect(loadConfig(demo).x402SettlementSecret).toBe("test-settlement-secret");
+    expect(loadConfig(env).x402SettlementSecret).toBeUndefined();
+  });
 
   it("rejects a malformed explicit facilitator account", () => {
     expect(() => loadConfig({ ...demo, X402_FACILITATOR_ACCOUNT_ID: "invalid" }))
