@@ -108,6 +108,21 @@ Pool berkurang, Activity feed + Leaderboard ter-update.
 
 > Top up HBAR: https://portal.hedera.com · USDC: mint langsung ke verifier.
 
+## Automated demo runner
+
+From the repository root:
+
+```text
+bun run demo/run-demo.ts
+```
+
+The runner uses `reentrancy-vault` and verifies the local Playground path. Set
+`CODE4AI_API` for a deployed server, `DEMO_TARGET` to select another target,
+and `DEMO_REAL=1` to continue into the real submission path. Set
+`DEMO_MODE=fallback` to print the deterministic rehearsal transcript without
+network access. Automatic fallback is marked explicitly and never represents a
+live settlement.
+
 ## Fallback kalau macet
 
 - Submit `already claimed` → ganti target / pakai Playground
