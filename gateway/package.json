@@ -1,0 +1,14 @@
+{
+  "name": "code4ai-bazantic-gateway",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "recipe": "bun run src/recipe.ts"
+  },
+  "dependencies": {
+    "@x402/core": "2.25.0",
+    "@x402/hedera": "2.25.0",
+    "hono": "^4.6.14"
+  }
+}
