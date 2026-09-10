@@ -1,0 +1,8 @@
+{
+  "name": "code4ai-reference-agent",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/index.ts"
+  }
+}
