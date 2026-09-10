@@ -1,0 +1,14 @@
+type HistoricalExploit @entity(immutable: true) {
+  id: Bytes!
+  targetKey: String!
+  incident: String!
+  technique: String!
+  lossUsd: String!
+  chain: String!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  attackTx: Bytes!
+  attacker: Bytes!
+  victim: Bytes!
+  sourceUrl: String!
+}

@@ -67,3 +67,15 @@ describe("challenges + partners pages", () => {
     expect(catalog).toMatch(/prizePool: 10,/);
   });
 });
+
+describe("replay gallery", () => {
+  const replays = read("components/pages/Replays.tsx");
+
+  it("covers all three target patterns and keeps a local fallback", () => {
+    expect(replays).toContain("access-control-vault");
+    expect(replays).toContain("rounding-vault");
+    expect(replays).toContain("reentrancy-vault");
+    expect(replays).toContain("VITE_SUBGRAPH_URL");
+    expect(replays).toContain("Play in Playground");
+  });
+});

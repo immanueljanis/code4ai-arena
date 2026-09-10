@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { ArrowRight, ExternalLink, History, ShieldAlert } from 'lucide-react'
 import { Button, Card, Tag, cn, wrap } from '../ui'
 import { SiteNav } from '../site/SiteNav'
@@ -14,6 +15,10 @@ type Replay = {
   story: string
   sourceLabel: string
   sourceUrl: string
+}
+
+type GraphReplay = Replay & {
+  attackTx: string
 }
 
 const REPLAYS: Replay[] = [
@@ -76,6 +81,25 @@ function ReplayCard({ replay, index }: { replay: Replay; index: number }) {
 }
 
 export function ReplaysPage() {
+  const [replays, setReplays] = useState<Replay[]>(REPLAYS)
+
+  useEffect(() => {
+    const endpoint = import.meta.env.VITE_SUBGRAPH_URL as string | undefined
+    if (!endpoint) return
+    const query = `query ExploitHistory { historicalExploits(first: 10, orderBy: timestamp, orderDirection: desc) { targetKey incident technique lossUsd attackTx sourceUrl timestamp } }`
+    void fetch(endpoint, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ query }),
+    })
+      .then((response) => response.json() as Promise<{ data?: { historicalExploits?: GraphReplay[] } }>)
+      .then((body) => {
+        const history = body.data?.historicalExploits
+        if (history?.length) setReplays(history)
+      })
+      .catch(() => undefined)
+  }, [])
+
   return (
     <main className="min-h-screen bg-bg">
       <SiteNav active="/replays" />
@@ -91,7 +115,7 @@ export function ReplaysPage() {
 
         <section className="py-12">
           <div className={cn(wrap, 'grid gap-4 lg:grid-cols-3')}>
-            {REPLAYS.map((replay, index) => <ReplayCard key={replay.targetKey} replay={replay} index={index} />)}
+            {replays.map((replay, index) => <ReplayCard key={replay.targetKey} replay={replay} index={index} />)}
           </div>
         </section>
 

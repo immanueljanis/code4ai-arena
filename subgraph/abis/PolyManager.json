@@ -1,0 +1,13 @@
+[
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": false, "internalType": "uint64", "name": "fromChainID", "type": "uint64" },
+      { "indexed": false, "internalType": "bytes", "name": "toContract", "type": "bytes" },
+      { "indexed": false, "internalType": "bytes", "name": "crossChainTxHash", "type": "bytes" },
+      { "indexed": false, "internalType": "bytes", "name": "fromChainTxHash", "type": "bytes" }
+    ],
+    "name": "VerifyHeaderAndExecuteTxEvent",
+    "type": "event"
+  }
+]
