@@ -53,6 +53,7 @@ function mockDeps(verdict: "VALID" | "INVALID") {
     signAuth: async () => x402Auth,
     verifyAuth: async () => ({ payer: "0.0.4242", paymentDigest: "sha256:test-digest" }),
     resolvePayer: async () => "0.0.4242",
+    isSettled: async () => false,
     fundAgent: async () => null,
   } as SubmitDeps;
 }

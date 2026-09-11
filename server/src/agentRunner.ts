@@ -17,7 +17,7 @@ import {
   verifyStakeAuthorization,
   type X402Authorization,
 } from "./x402.ts";
-import { payout, slash, invalidatePool } from "./arena.ts";
+import { payout, slash, invalidatePool, isAttemptSettled } from "./arena.ts";
 import { ensureAgentUsdc } from "./fund.ts";
 import { writeReputationFeedback } from "./erc8004.ts";
 import {
@@ -27,6 +27,7 @@ import {
   insertSubmission,
   updateSubmissionAttempt,
   type AgentRow,
+  type SubmissionAttempt,
 } from "./db.ts";
 import { getTargetMeta } from "./contests.ts";
 import { serverConfig } from "./config.ts";
@@ -78,6 +79,7 @@ export interface SubmitDeps {
   doSlash: typeof slash;
   writeFeedback: typeof writeReputationFeedback;
   fundAgent: typeof ensureAgentUsdc;
+  isSettled: typeof isAttemptSettled;
 }
 
 const realDeps: SubmitDeps = {
@@ -91,6 +93,7 @@ const realDeps: SubmitDeps = {
   doSlash: slash,
   writeFeedback: writeReputationFeedback,
   fundAgent: ensureAgentUsdc,
+  isSettled: isAttemptSettled,
 };
 
 /** The stake amount, USDC 6 decimals (flat 1 USDC per target). */
@@ -164,13 +167,7 @@ export async function runSubmit(
   });
   const attemptId = attempt.id;
   if (!created) {
-    if (attempt.phase === "completed" && attempt.result) {
-      return attempt.result as SubmitResult;
-    }
-    throw Object.assign(
-      new Error(`attempt ${attemptId} is already in progress (phase ${attempt.phase})`),
-      { status: 409 }
-    );
+    return resumeAttempt(attempt, agent, targetKey, exploitCalls, deps);
   }
   if (!(await claimSubmissionAttempt(attemptId, "accepted", "provisioning"))) {
     throw Object.assign(new Error(`attempt ${attemptId} is already claimed`), { status: 409 });
@@ -218,10 +215,59 @@ export async function runSubmit(
   );
   await updateSubmissionAttempt(attemptId, "proved", { verdict, exploitReceipt: exploitTxHash });
 
-  // 2. Settle exactly once (R2).
-  let settlementTxHash: string;
-  if (verdict === "VALID") {
-    deps.discardAuth(auth); // stake never moves
+  // 2-4. Settle exactly once (R2), then record reputation and persist.
+  return settleAndComplete({
+    attemptId,
+    agent,
+    targetKey,
+    exploitCalls,
+    verdict,
+    exploitTxHash,
+    auth,
+    paymentDigest,
+    expectedPayer,
+    deps,
+  });
+}
+
+interface SettlementContext {
+  attemptId: string;
+  agent: AgentRow;
+  targetKey: string;
+  exploitCalls: ExploitCall[];
+  verdict: "VALID" | "INVALID";
+  exploitTxHash: string;
+  auth: X402Authorization;
+  paymentDigest?: string;
+  expectedPayer?: string;
+  deps: SubmitDeps;
+  settlementTxHash?: string;
+}
+
+/**
+ * The money-moving tail, written so it can be entered twice for the same
+ * attempt. `Arena.settledAttempts` is the on-chain record of whether this
+ * attempt already moved funds, so a resumed run reconciles against the chain
+ * rather than assuming, and the facilitator deduplicates a repeated settle by
+ * attempt and digest instead of broadcasting a second payment.
+ */
+async function settleAndComplete(ctx: SettlementContext): Promise<SubmitResult> {
+  const { attemptId, agent, targetKey, exploitCalls, verdict, deps } = ctx;
+  const meta = getTargetMeta(targetKey)!;
+  let settlementTxHash = ctx.settlementTxHash;
+
+  if (await deps.isSettled(attemptId)) {
+    if (!settlementTxHash) {
+      throw Object.assign(
+        new Error(
+          `attempt ${attemptId} already settled on-chain but no receipt was journalled; ` +
+            "reconcile manually rather than re-settling"
+        ),
+        { status: 409 }
+      );
+    }
+  } else if (verdict === "VALID") {
+    deps.discardAuth(ctx.auth); // stake never moves
     await updateSubmissionAttempt(attemptId, "accounting_pending");
     settlementTxHash = await deps.doPayout(
       targetKey,
@@ -233,24 +279,32 @@ export async function runSubmit(
     );
   } else {
     await updateSubmissionAttempt(attemptId, "payment_pending");
-    settlementTxHash = await deps.settleAuth(auth, attemptId, paymentDigest, expectedPayer);
-    await updateSubmissionAttempt(attemptId, "accounting_pending", {
-      settlementReceipt: settlementTxHash,
+    const paymentTxHash = await deps.settleAuth(
+      ctx.auth,
+      attemptId,
+      ctx.paymentDigest,
+      ctx.expectedPayer
+    );
+    await updateSubmissionAttempt(attemptId, "payment_confirmed", {
+      settlementReceipt: paymentTxHash,
     });
+    settlementTxHash = paymentTxHash;
+    await updateSubmissionAttempt(attemptId, "accounting_pending");
     await deps.doSlash(targetKey, agent.walletAddress, STAKE, attemptId);
   }
+
   await updateSubmissionAttempt(attemptId, "accounting_confirmed", {
     accountingReceipt: settlementTxHash,
   });
   invalidatePool(targetKey); // pool changed on-chain — refresh reads
 
-  // 3. Reputation feedback (ERC-8004, mock by default).
+  // Reputation is retried on its own: a feedback failure must never replay a
+  // payment or a payout.
   const reputationTxHash = await deps.writeFeedback(
     agent.erc8004TokenId ?? agent.id,
     verdict
   );
 
-  // 4. Persist.
   const submissionId = await insertSubmission({
     agentId: agent.id,
     targetKey,
@@ -258,8 +312,8 @@ export async function runSubmit(
     exploitCalls,
     verdict,
     invariantId: verdict === "VALID" ? meta.invariantId : null,
-    exploitTxHash,
-    settlementTxHash,
+    exploitTxHash: ctx.exploitTxHash,
+    settlementTxHash: settlementTxHash!,
     reputationTxHash,
   });
 
@@ -267,8 +321,8 @@ export async function runSubmit(
     attemptId,
     submissionId,
     verdict,
-    exploitTxHash,
-    settlementTxHash,
+    exploitTxHash: ctx.exploitTxHash,
+    settlementTxHash: settlementTxHash!,
     reputationTxHash,
   };
   await updateSubmissionAttempt(attemptId, "completed", {
@@ -278,4 +332,64 @@ export async function runSubmit(
   });
 
   return result;
+}
+
+/**
+ * Continue a journalled attempt that a previous run left unfinished. Phases
+ * before a verdict cannot be reconciled — the fresh target instance is not
+ * recoverable — so they fail closed without moving money; from `proved` onward
+ * the stored verdict and authorization are enough to finish exactly once.
+ */
+async function resumeAttempt(
+  attempt: SubmissionAttempt,
+  agent: AgentRow,
+  targetKey: string,
+  exploitCalls: ExploitCall[],
+  deps: SubmitDeps
+): Promise<SubmitResult> {
+  const attemptId = attempt.id;
+  if (attempt.phase === "completed" && attempt.result) {
+    return attempt.result as SubmitResult;
+  }
+  if (attempt.phase === "terminal_failed") {
+    throw Object.assign(new Error(`attempt ${attemptId} failed permanently`), { status: 409 });
+  }
+
+  const unprovable = ["accepted", "provisioning", "proving"] as const;
+  if ((unprovable as readonly string[]).includes(attempt.phase)) {
+    await updateSubmissionAttempt(attemptId, "terminal_failed", {
+      error: `interrupted during ${attempt.phase}; no settlement was attempted`,
+    });
+    throw Object.assign(
+      new Error(
+        `attempt ${attemptId} was interrupted before a verdict and cannot be resumed; ` +
+          "submit again with a new Idempotency-Key"
+      ),
+      { status: 409 }
+    );
+  }
+
+  if (!attempt.verdict || !attempt.exploitReceipt || !attempt.paymentAuthorization) {
+    throw Object.assign(
+      new Error(`attempt ${attemptId} is missing the verdict or authorization needed to resume`),
+      { status: 409 }
+    );
+  }
+
+  const auth = JSON.parse(
+    decryptPrivateKey(attempt.paymentAuthorization, serverConfig.serverWalletSecret)
+  ) as X402Authorization;
+
+  return settleAndComplete({
+    attemptId,
+    agent,
+    targetKey,
+    exploitCalls,
+    verdict: attempt.verdict,
+    exploitTxHash: attempt.exploitReceipt,
+    auth,
+    paymentDigest: attempt.paymentTransactionId ?? undefined,
+    deps,
+    settlementTxHash: attempt.accountingReceipt ?? attempt.settlementReceipt ?? undefined,
+  });
 }

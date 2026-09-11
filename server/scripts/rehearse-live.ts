@@ -27,7 +27,7 @@ const { seedTargets, getTargetMeta } = await import("../src/contests.ts");
 const { runSubmit } = await import("../src/agentRunner.ts");
 const { decryptPrivateKey, encryptPrivateKey, generateAgentWallet } = await import("../src/wallet.ts");
 const { runOnchainVerification } = await import("../src/verifier-onchain.ts");
-const { payout, slash, invalidatePool, getPool } = await import("../src/arena.ts");
+const { payout, slash, invalidatePool, getPool, isAttemptSettled } = await import("../src/arena.ts");
 const { ensureAgentUsdc, ERC20_ABI } = await import("../src/fund.ts");
 import type { SubmitDeps } from "../src/agentRunner.ts";
 
@@ -97,6 +97,7 @@ function stakeTransferDeps(agentKey: `0x${string}`): SubmitDeps {
     doSlash: slash,
     writeFeedback: async () => `mock:${crypto.randomUUID()}`,
     fundAgent: ensureAgentUsdc,
+    isSettled: isAttemptSettled,
   } as SubmitDeps;
 }
 

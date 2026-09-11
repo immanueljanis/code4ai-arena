@@ -5,7 +5,7 @@
   "scripts": {
     "check": "bun run check:contracts && bun run check:server && bun run check:facilitator && bun run check:gateway && bun run check:web",
     "check:contracts": "cd contracts && forge test --match-path \"test/*\"",
-    "check:server": "cd server && bun test --timeout 30000 test/config.test.ts test/settlement-profile.test.ts test/preflight.test.ts test/wallet.test.ts test/x402.test.ts test/arena.test.ts test/erc8004.test.ts test/verifier-local.test.ts test/db.test.ts test/api-submit.test.ts test/api-submit-invalid.test.ts test/attempt-journal.test.ts test/demo-hts-provisioning.test.ts test/create-hedera-account.test.ts",
+    "check:server": "cd server && bun test --timeout 30000 test/config.test.ts test/settlement-profile.test.ts test/preflight.test.ts test/wallet.test.ts test/x402.test.ts test/arena.test.ts test/erc8004.test.ts test/verifier-local.test.ts test/db.test.ts test/api-submit.test.ts test/api-submit-invalid.test.ts test/attempt-journal.test.ts test/attempt-recovery.test.ts test/demo-hts-provisioning.test.ts test/create-hedera-account.test.ts",
     "check:facilitator": "cd facilitator && bun test",
     "check:gateway": "cd gateway && bun test",
     "check:web": "cd web && bun test"
