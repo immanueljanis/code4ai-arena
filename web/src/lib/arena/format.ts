@@ -9,8 +9,12 @@ export const SETTLEMENT_PROFILE =
 
 export const SETTLEMENT_SYMBOL = SETTLEMENT_PROFILE === 'demo-hts' ? 'DemoUSD' : 'USDC'
 
+/** A pool the server could not read: shown as unknown, never as an empty pool. */
+export const UNKNOWN_AMOUNT = '—'
+
 /** Settlement atomic units (6 decimals) → display string, e.g. "5 USDC" or "1.5 DemoUSD". */
-export function formatUsdc(amount: string | number | bigint): string {
+export function formatUsdc(amount: string | number | bigint | null | undefined): string {
+  if (amount === null || amount === undefined) return UNKNOWN_AMOUNT
   const atomic = BigInt(amount)
   const whole = atomic / USDC_DECIMALS
   const frac = atomic % USDC_DECIMALS
@@ -21,6 +25,13 @@ export function formatUsdc(amount: string | number | bigint): string {
 
 export const shortHash = (hash: string, edge = 4): string =>
   hash.length > edge * 2 + 2 ? `${hash.slice(0, edge + 2)}…${hash.slice(-edge)}` : hash
+
+/** Pool state when the amount may be unreadable; unknown is not solved. */
+export const isSolved = (poolRemaining: string | null): boolean =>
+  poolRemaining !== null && BigInt(poolRemaining) <= 0n
+
+export const isOpen = (poolRemaining: string | null): boolean =>
+  poolRemaining !== null && BigInt(poolRemaining) > 0n
 
 export const signed = (amount: string | number | bigint): string => {
   const atomic = BigInt(amount)

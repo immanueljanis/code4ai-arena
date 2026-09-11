@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { getPool } from "../arena.ts";
+import { getPool, getPoolOrNull } from "../arena.ts";
 import { listTargets } from "../db.ts";
 import { getTargetMeta, listTargetRows, targetSource } from "../contests.ts";
 
@@ -14,7 +14,7 @@ contests.get("/", async (c) => {
       objective: row.objective,
       invariantCount: row.invariantCount,
       stakeAmount: Number(row.stakeAmount),
-      poolRemaining: (await getPool(row.key)).toString(),
+      poolRemaining: (await getPoolOrNull(row.key))?.toString() ?? null,
     }))
   );
   return c.json(out);
@@ -26,12 +26,8 @@ contests.get("/:key", async (c) => {
   const meta = getTargetMeta(key);
   if (!meta) return c.json({ error: "contest not found" }, 404);
 
-  let poolRemaining = "0";
-  try {
-    poolRemaining = (await getPool(key)).toString();
-  } catch {
-    // Pool read failure (e.g. unverified contract) — surface 0 rather than 500.
-  }
+  // null, never "0": an unreadable pool must not render as a solved bounty.
+  const poolRemaining = (await getPoolOrNull(key))?.toString() ?? null;
 
   return c.json({
     key,

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { getPool } from "../arena.ts";
+import { getPoolOrNull } from "../arena.ts";
 import { serverConfig } from "../config.ts";
 import { listSubmissions, listTargets } from "../db.ts";
 
@@ -15,7 +15,7 @@ spectator.get("/state", async (c) => {
       objective: t.objective,
       invariantCount: t.invariantCount,
       stakeAmount: Number(t.stakeAmount),
-      poolRemaining: (await getPool(t.key)).toString(),
+      poolRemaining: (await getPoolOrNull(t.key))?.toString() ?? null,
     }))
   );
 

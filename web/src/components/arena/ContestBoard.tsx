@@ -1,11 +1,11 @@
 import { ShieldAlert } from 'lucide-react'
 import { Card, cn } from '../ui'
 import { PanelHeading } from './atoms'
-import { formatUsdc } from '../../lib/arena/format'
+import { formatUsdc, isOpen } from '../../lib/arena/format'
 import type { Contest } from '../../lib/arena/types'
 
 function ContestCard({ contest, active, onSelect }: { contest: Contest; active: boolean; onSelect: (key: string) => void }) {
-  const open = BigInt(contest.poolRemaining) > 0n
+  const open = isOpen(contest.poolRemaining)
   return (
     <button type="button" onClick={() => onSelect(contest.key)} className="block w-full text-left">
       <Card interactive tone={active ? 'lime' : 'line'} className={cn('p-4', active && 'bg-surface')}>

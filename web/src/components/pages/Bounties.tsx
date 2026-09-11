@@ -7,7 +7,7 @@ import { SiteFooter } from '../site/SiteFooter'
 import { PageHero } from '../site/PageHero'
 import { PageTransition } from '../site/PageTransition'
 import { createArenaClient } from '../../lib/arena/client'
-import { SETTLEMENT_SYMBOL, formatUsdc } from '../../lib/arena/format'
+import { SETTLEMENT_SYMBOL, formatUsdc, isOpen, isSolved } from '../../lib/arena/format'
 import type { Contest } from '../../lib/arena/types'
 
 const FILTERS = ['all', 'open', 'solved'] as const
@@ -23,7 +23,7 @@ function StatTile({ value, label, tone }: { value: React.ReactNode; label: strin
 }
 
 function BountyCard({ bounty }: { bounty: Contest }) {
-  const solved = BigInt(bounty.poolRemaining) <= 0n
+  const solved = isSolved(bounty.poolRemaining)
   return (
     <Link to="/bounties/$key" params={{ key: bounty.key }} className="block">
       <Card interactive tone={solved ? 'lime' : 'line'} className="flex flex-col p-5">
@@ -69,13 +69,13 @@ export function BountiesPage() {
   const shown = useMemo(
     () =>
       contests.filter((c) => {
-        const solved = BigInt(c.poolRemaining) <= 0n
+        const solved = isSolved(c.poolRemaining)
         return filter === 'all' || (filter === 'solved' ? solved : !solved)
       }),
     [contests, filter],
   )
-  const pool = contests.reduce((sum, c) => sum + BigInt(c.poolRemaining), 0n)
-  const open = contests.filter((c) => BigInt(c.poolRemaining) > 0n).length
+  const pool = contests.reduce((sum, c) => sum + BigInt(c.poolRemaining ?? 0), 0n)
+  const open = contests.filter((c) => isOpen(c.poolRemaining)).length
 
   return (
     <main className="min-h-screen bg-bg">

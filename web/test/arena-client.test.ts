@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { HttpArenaClient } from "../src/lib/arena/client.ts";
-import { formatUsdc, signed, timeAgo } from "../src/lib/arena/format.ts";
+import { UNKNOWN_AMOUNT, formatUsdc, isOpen, isSolved, signed, timeAgo } from "../src/lib/arena/format.ts";
 
 const BASE = "http://server.test";
 
@@ -153,5 +153,25 @@ describe("timeAgo", () => {
     const now = Date.now();
     expect(timeAgo(new Date(now - 10_000).toISOString(), now)).toBe("10s ago");
     expect(timeAgo(new Date(now - 3_600_000).toISOString(), now)).toBe("1h ago");
+  });
+});
+
+describe("unreadable pools", () => {
+  it("renders an unknown pool as unknown, never as zero", () => {
+    expect(formatUsdc(null)).toBe(UNKNOWN_AMOUNT);
+    expect(formatUsdc(undefined)).toBe(UNKNOWN_AMOUNT);
+    expect(formatUsdc("0")).not.toBe(UNKNOWN_AMOUNT);
+  });
+
+  it("never calls an unknown pool solved or open", () => {
+    expect(isSolved(null)).toBe(false);
+    expect(isOpen(null)).toBe(false);
+  });
+
+  it("still classifies a known pool", () => {
+    expect(isSolved("0")).toBe(true);
+    expect(isOpen("0")).toBe(false);
+    expect(isSolved("1000000")).toBe(false);
+    expect(isOpen("1000000")).toBe(true);
   });
 });

@@ -199,9 +199,32 @@ export async function getPool(
   if (cached && Date.now() - cached.at < POOL_CACHE_TTL_MS) {
     return cached.value;
   }
-  const value = await readPoolWithRetry(clients, targetKey);
-  poolCache.set(targetKey, { at: Date.now(), value });
-  return value;
+  try {
+    const value = await readPoolWithRetry(clients, targetKey);
+    poolCache.set(targetKey, { at: Date.now(), value });
+    return value;
+  } catch (e) {
+    // A stale pool is closer to the truth than a failed feed: the spectator
+    // view polls every few seconds and one bad RPC read must not blank it.
+    if (cached) return cached.value;
+    throw e;
+  }
+}
+
+/**
+ * The pool, or null when it has never been read successfully. Callers rendering
+ * a feed use this so one unreadable target degrades to "unknown" instead of
+ * failing the whole response or, worse, reporting an empty pool.
+ */
+export async function getPoolOrNull(
+  targetKey: string,
+  clients: ArenaClients = arenaClients()
+): Promise<bigint | null> {
+  try {
+    return await getPool(targetKey, clients);
+  } catch {
+    return null;
+  }
 }
 
 /** Invalidate the cached pool (called after slash/payout so reads are fresh). */

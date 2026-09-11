@@ -1,7 +1,7 @@
 import { CheckCircle2, ShieldCheck } from 'lucide-react'
 import { CodeBlock } from './atoms'
 import { ExploitPanel } from './ExploitPanel'
-import { formatUsdc } from '../../lib/arena/format'
+import { formatUsdc, isOpen } from '../../lib/arena/format'
 import type { ExploitCall, PlaygroundResult, SubmitResult } from '../../lib/arena/types'
 
 export function ContestPanel({
@@ -31,7 +31,7 @@ export function ContestPanel({
     return <div className="grid h-64 place-items-center font-mono text-sm text-faint">select a contract to inspect…</div>
   }
 
-  const open = BigInt(contest.poolRemaining) > 0n
+  const open = isOpen(contest.poolRemaining)
 
   return (
     <section className="flex min-w-0 flex-col gap-4">

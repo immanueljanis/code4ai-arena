@@ -177,3 +177,40 @@ describe("submit endpoint refuses expensive requests before spending", () => {
     expect(res.status).toBe(413);
   });
 });
+
+describe("pool reads degrade instead of failing the feed", () => {
+  it("serves a stale pool rather than an error once one has been read", async () => {
+    const { getPool } = await import("../src/arena.ts");
+    let calls = 0;
+    const clients = {
+      publicClient: {
+        readContract: async () => {
+          calls += 1;
+          if (calls === 1) return [42_000_000n, true];
+          throw new Error("rpc down");
+        },
+      },
+      walletClient: {},
+    } as never;
+
+    const key = `stale-${crypto.randomUUID()}`;
+    expect(await getPool(key, clients)).toBe(42_000_000n);
+    await Bun.sleep(3200);
+    expect(await getPool(key, clients)).toBe(42_000_000n);
+    expect(calls).toBeGreaterThan(1);
+  }, 15000);
+
+  it("reports an unknown pool as null rather than an empty one", async () => {
+    const { getPoolOrNull } = await import("../src/arena.ts");
+    const clients = {
+      publicClient: {
+        readContract: async () => {
+          throw new Error("rpc down");
+        },
+      },
+      walletClient: {},
+    } as never;
+
+    expect(await getPoolOrNull(`never-${crypto.randomUUID()}`, clients)).toBeNull();
+  }, 15000);
+});

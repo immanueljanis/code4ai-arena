@@ -6,7 +6,7 @@ import { SiteNav } from '../site/SiteNav'
 import { SiteFooter } from '../site/SiteFooter'
 import { PageTransition } from '../site/PageTransition'
 import { createArenaClient } from '../../lib/arena/client'
-import { SETTLEMENT_SYMBOL, formatUsdc } from '../../lib/arena/format'
+import { SETTLEMENT_SYMBOL, formatUsdc, isSolved } from '../../lib/arena/format'
 import type { ContestDetail } from '../../lib/arena/types'
 
 function Stat({ label, value, tone }: { label: string; value: React.ReactNode; tone?: 'lime' }) {
@@ -51,7 +51,7 @@ export function BountyDetailPage({ bountyKey }: { bountyKey: string }) {
     )
   }
 
-  const solved = BigInt(bounty.poolRemaining) <= 0n
+  const solved = isSolved(bounty.poolRemaining)
 
   return (
     <main className="min-h-screen bg-bg">

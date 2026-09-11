@@ -10,7 +10,7 @@ export interface Contest {
   /** USDC, 6 decimals as integer-scaled (string from server). */
   stakeAmount: string
   /** USDC, 6 decimals as integer-scaled (string from server). */
-  poolRemaining: string
+  poolRemaining: string | null
 }
 
 export interface ContestDetail extends Contest {
