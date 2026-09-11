@@ -341,6 +341,20 @@ export async function updateSubmissionAttempt(
   `;
 }
 
+/**
+ * A VALID verdict never settles the stake, so the signed payment is dropped
+ * rather than kept. This is the only revocation the arena can actually perform:
+ * the bytes stay valid on Hedera until they expire, so the real guarantee is
+ * that neither this server nor the facilitator will ever submit them.
+ */
+export async function discardPaymentAuthorization(attemptId: string): Promise<void> {
+  await sql`
+    UPDATE submission_attempts
+    SET payment_authorization = NULL, updated_at = now()
+    WHERE id = ${attemptId}
+  `;
+}
+
 export async function getSubmissionAttempt(attemptId: string): Promise<SubmissionAttempt | undefined> {
   const rows = await sql`SELECT * FROM submission_attempts WHERE id = ${attemptId}`;
   return rows.length ? attemptFromRow(rows[0] as Record<string, unknown>) : undefined;

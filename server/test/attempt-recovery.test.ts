@@ -84,7 +84,7 @@ function harness(verdict: "VALID" | "INVALID"): Harness {
     },
     isSettled: async () => settledOnChain.value,
     guards: { gasBalance: async () => 10n ** 19n, attemptCount: async () => 0 },
-    discardAuth: () => {},
+    discardAuth: async () => {},
     settleAuth: async () => {
       counters.settled += 1;
       crash("settle");

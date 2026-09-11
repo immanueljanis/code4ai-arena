@@ -52,7 +52,7 @@ function mockDeps(verdict: "VALID" | "INVALID") {
     isSettled: async () => false,
     guards: { gasBalance: async () => 10n ** 19n, attemptCount: async () => 0 },
     settleAuth: async () => "0x" + "bb".repeat(32),
-    discardAuth: () => {},
+    discardAuth: async () => {},
     doPayout: async () => "0x" + "dd".repeat(32),
     doSlash: async () => "0x" + "ee".repeat(32),
     writeFeedback: async () => "0x" + "cc".repeat(32),

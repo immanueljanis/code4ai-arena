@@ -98,6 +98,20 @@ export function TestTokenBadge() {
   return <Tag tone="slash">{SETTLEMENT_SYMBOL} · test token, not USD</Tag>
 }
 
+/**
+ * The server decides which token actually settles. When the build-time profile
+ * disagrees, say so loudly: silently labelling DemoUSD as USDC would misstate
+ * what an agent is being paid in.
+ */
+export function SettlementMismatch({ serverSymbol }: { serverSymbol?: string }) {
+  if (!serverSymbol || serverSymbol === SETTLEMENT_SYMBOL) return null
+  return (
+    <Tag tone="slash">
+      settles in {serverSymbol}, not {SETTLEMENT_SYMBOL} — rebuild the UI
+    </Tag>
+  )
+}
+
 /* ── Corner-bracket frame (Arbital crosshair markers) ── */
 export function Bracket({ children, className, tone = 'line' }: { children: ReactNode; className?: string; tone?: 'line' | 'lime' }) {
   const c = tone === 'lime' ? 'border-lime/60' : 'border-line'

@@ -6,6 +6,7 @@ import type {
   ContestDetail,
   ExploitCall,
   PlaygroundResult,
+  SettlementAsset,
   Submission,
   SubmitResult,
 } from './types'
@@ -35,6 +36,7 @@ export function useArena(initialKey?: string | null): UseArena {
   const client = useMemo(() => createArenaClient(), [])
   const [contests, setContests] = useState<Contest[]>([])
   const [submissions, setSubmissions] = useState<Submission[]>([])
+  const [settlement, setSettlement] = useState<SettlementAsset | null>(null)
   const [selectedKey, setSelectedKey] = useState<string | null>(initialKey ?? null)
   const [selected, setSelected] = useState<ContestDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -64,6 +66,7 @@ export function useArena(initialKey?: string | null): UseArena {
     const state = await client.state()
     setContests(state.targets)
     setSubmissions(state.submissions)
+    if (state.settlement) setSettlement(state.settlement)
     return state
   }, [client])
 
@@ -165,6 +168,7 @@ export function useArena(initialKey?: string | null): UseArena {
   return {
     contests,
     submissions,
+    settlement,
     selectedKey,
     selected,
     loading,

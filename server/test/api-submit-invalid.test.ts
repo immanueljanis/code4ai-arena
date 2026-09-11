@@ -47,7 +47,7 @@ function mockDeps(verdict: "VALID" | "INVALID") {
   return {
     verify: async () => ({ verdict, exploitTxHash: "0x" + "11".repeat(32) }),
     settleAuth: async () => "0x" + "22".repeat(32),
-    discardAuth: () => {},
+    discardAuth: async () => {},
     doPayout: async () => "0x" + "55".repeat(32),
     doSlash: async () => "0x" + "44".repeat(32),
     writeFeedback: async () => "0x" + "33".repeat(32),

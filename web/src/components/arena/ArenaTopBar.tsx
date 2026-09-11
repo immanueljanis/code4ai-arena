@@ -1,9 +1,15 @@
 import { ArrowLeft } from 'lucide-react'
 import { StatTile } from './atoms'
-import { TestTokenBadge } from '../ui'
-import type { Submission } from '../../lib/arena/types'
+import { SettlementMismatch, TestTokenBadge } from '../ui'
+import type { SettlementAsset, Submission } from '../../lib/arena/types'
 
-export function ArenaTopBar({ submissions }: { submissions: Submission[] }) {
+export function ArenaTopBar({
+  submissions,
+  settlement,
+}: {
+  submissions: Submission[]
+  settlement?: SettlementAsset | null
+}) {
   const open = submissions.filter((s) => s.verdict === null || s.verdict === undefined).length
   const valid = submissions.filter((s) => s.verdict === 'VALID').length
   const invalid = submissions.filter((s) => s.verdict === 'INVALID').length
@@ -24,6 +30,7 @@ export function ArenaTopBar({ submissions }: { submissions: Submission[] }) {
             <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-faint">arena</span>
           </a>
           <TestTokenBadge />
+          <SettlementMismatch serverSymbol={settlement?.symbol} />
         </div>
 
         <div className="hidden items-center gap-5 lg:flex">

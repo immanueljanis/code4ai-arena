@@ -173,6 +173,3 @@ export async function settleStakeAuthorization(
   }
   return data.transaction;
 }
-
-export function discardAuthorization(_authorization: X402Authorization): void {
-}

@@ -43,7 +43,7 @@ Prereqs: Postgres on `:5440`, `forge build` in `contracts/`, `server/.env` fille
 bun run check
 ```
 
-379 tests across contracts, server, facilitator, gateway, web, plus the subgraph
+381 tests across contracts, server, facilitator, gateway, web, plus the subgraph
 build. This is the fastest way to show the thing is not a demo-day shell.
 
 ### 2. Local playground — free, instant
@@ -118,7 +118,7 @@ settlement.
 
 ## The story worth telling
 
-Running the real path on testnet found three bugs 378 unit tests did not:
+Running the real path on testnet found three bugs no unit test did:
 
 1. Agent gas top-up sent with `gas: 21_000` — too little to lazily create the
    agent's Hedera account — and its receipt was never checked, so it failed

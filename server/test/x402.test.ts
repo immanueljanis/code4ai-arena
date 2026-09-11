@@ -1,6 +1,5 @@
 import { describe, expect, it } from "bun:test";
 import {
-  discardAuthorization,
   settleStakeAuthorization,
   signStakeAuthorization,
 } from "../src/x402.ts";
@@ -105,8 +104,4 @@ describe("signStakeAuthorization", () => {
   });
 });
 
-describe("discardAuthorization", () => {
-  it("is a no-op: VALID never submits the payment", () => {
-    expect(() => discardAuthorization(sampleAuth)).not.toThrow();
-  });
-});
+

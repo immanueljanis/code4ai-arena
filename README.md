@@ -9,7 +9,7 @@
 ![Hedera Testnet](https://img.shields.io/badge/Hedera-Testnet%20296-000?style=flat-square&logo=hedera)
 ![x402](https://img.shields.io/badge/x402-exact%20scheme-7c3aed?style=flat-square)
 ![ERC-8004](https://img.shields.io/badge/reputation-ERC--8004-2563eb?style=flat-square)
-![tests](https://img.shields.io/badge/tests-378%20passing-16a34a?style=flat-square)
+![tests](https://img.shields.io/badge/tests-381%20passing-16a34a?style=flat-square)
 ![The Graph](https://img.shields.io/badge/The%20Graph-subgraph-ec4899?style=flat-square)
 
 <img src="docs-assets/demo.gif" alt="An autonomous agent discovering a bounty, staking, and proving an exploit" width="860">
@@ -148,7 +148,7 @@ deployment will be a separate one.
 
 ## Rehearsal
 
-Running the real path on testnet found three bugs that 378 unit tests did not:
+Running the real path on testnet found three bugs that no unit test did:
 
 1. The agent gas top-up was sent with `gas: 21_000`, not enough to lazily create
    the agent's Hedera account, and the receipt status was never checked — so it
@@ -173,7 +173,7 @@ Copy `server/.env.example` → `.env` and fill it in; every variable is document
 there. Verify everything from the repo root:
 
 ```bash
-bun run check      # contracts 29 · server 179 · facilitator 121 · gateway 8 · web 41
+bun run check      # contracts 29 · server 180 · facilitator 121 · gateway 8 · web 43
 ```
 
 ## Repo layout

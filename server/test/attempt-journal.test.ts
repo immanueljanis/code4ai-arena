@@ -15,7 +15,7 @@ process.env.TEST_DATABASE_URL =
   process.env.TEST_DATABASE_URL ?? "postgres://postgres:postgres@localhost:5440/code4ai";
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
 
-const { initSchema, getSubmissionAttempt, insertAgent } = await import("../src/db.ts");
+const { initSchema, getSubmissionAttempt, insertAgent, discardPaymentAuthorization } = await import("../src/db.ts");
 const { seedTargets } = await import("../src/contests.ts");
 const { runSubmit, requestDigest } = await import("../src/agentRunner.ts");
 const { encryptPrivateKey, generateAgentWallet } = await import("../src/wallet.ts");
@@ -63,7 +63,7 @@ function countingDeps(verdict: "VALID" | "INVALID"): { deps: SubmitDeps; counter
       counters.settled += 1;
       return "0x" + "22".repeat(32);
     },
-    discardAuth: () => {},
+    discardAuth: async () => {},
     doPayout: async () => {
       counters.paid += 1;
       return "0x" + "55".repeat(32);
@@ -185,6 +185,32 @@ describe("submission attempt journal", () => {
     expect(counters.proved).toBe(1);
     expect(counters.settled).toBe(1);
     expect(counters.slashed).toBe(1);
+  }, 30000);
+
+  it("drops the signed payment bytes on a VALID verdict", async () => {
+    const agentId = await newAgent("journal-discard");
+    const { deps } = countingDeps("VALID");
+    const result = await runSubmit(agentId, "access-control-vault", [], x402Auth, {
+      ...deps,
+      discardAuth: discardPaymentAuthorization,
+    });
+
+    const attempt = await getSubmissionAttempt(result.attemptId);
+    expect(attempt!.verdict).toBe("VALID");
+    expect(attempt!.phase).toBe("completed");
+    expect(attempt!.paymentAuthorization).toBeNull();
+  }, 30000);
+
+  it("keeps the signed bytes on INVALID, which is the branch that settles", async () => {
+    const agentId = await newAgent("journal-keep");
+    const { deps } = countingDeps("INVALID");
+    const result = await runSubmit(agentId, "access-control-vault", [], x402Auth, {
+      ...deps,
+      discardAuth: discardPaymentAuthorization,
+    });
+
+    const attempt = await getSubmissionAttempt(result.attemptId);
+    expect(attempt!.paymentAuthorization).toBeTruthy();
   }, 30000);
 
   it("digests the target, calls and supplied authorization", () => {

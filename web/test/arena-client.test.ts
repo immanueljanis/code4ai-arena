@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "bun:test";
 import { HttpArenaClient } from "../src/lib/arena/client.ts";
 import { UNKNOWN_AMOUNT, formatUsdc, isOpen, isSolved, signed, timeAgo } from "../src/lib/arena/format.ts";
@@ -173,5 +174,23 @@ describe("unreadable pools", () => {
     expect(isOpen("0")).toBe(false);
     expect(isSolved("1000000")).toBe(false);
     expect(isOpen("1000000")).toBe(true);
+  });
+});
+
+describe("settlement mismatch guard", () => {
+  const ui = readFileSync(new URL("../src/components/ui.tsx", import.meta.url), "utf8");
+  const topBar = readFileSync(
+    new URL("../src/components/arena/ArenaTopBar.tsx", import.meta.url),
+    "utf8"
+  );
+
+  it("warns when the server settles in a different token than the build", () => {
+    expect(ui).toContain("SettlementMismatch");
+    expect(ui).toContain("serverSymbol === SETTLEMENT_SYMBOL");
+    expect(ui).toContain("rebuild the UI");
+  });
+
+  it("renders the guard where the cockpit shows the asset", () => {
+    expect(topBar).toContain("<SettlementMismatch serverSymbol={settlement?.symbol} />");
   });
 });

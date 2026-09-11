@@ -12,7 +12,7 @@ export function Arena({ initialTarget }: { initialTarget?: string }) {
 
   return (
     <main className="min-h-screen bg-bg">
-      <ArenaTopBar submissions={arena.submissions} />
+      <ArenaTopBar submissions={arena.submissions} settlement={arena.settlement} />
 
       <PageTransition>
         {arena.loading ? (

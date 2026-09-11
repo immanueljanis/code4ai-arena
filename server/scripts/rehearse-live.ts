@@ -22,7 +22,7 @@ process.env.HEDERA_USDC_TESTNET_ID = "0.0.429274";
 process.env.HEDERA_ARENA_ACCOUNT_ID = process.env.HEDERA_ARENA_ACCOUNT_ID || "0.0.1234";
 
 const { serverConfig } = await import("../src/config.ts");
-const { initSchema, insertAgent, getAgent, getSubmissionAttempt } = await import("../src/db.ts");
+const { initSchema, insertAgent, getAgent, getSubmissionAttempt, discardPaymentAuthorization } = await import("../src/db.ts");
 const { seedTargets, getTargetMeta } = await import("../src/contests.ts");
 const { runSubmit } = await import("../src/agentRunner.ts");
 const { decryptPrivateKey, encryptPrivateKey, generateAgentWallet } = await import("../src/wallet.ts");
@@ -93,7 +93,7 @@ function stakeTransferDeps(agentKey: `0x${string}`): SubmitDeps {
       return hash;
     },
     resolvePayer: async () => "0.0.0",
-    discardAuth: () => {},
+    discardAuth: discardPaymentAuthorization,
     doPayout: payout,
     doSlash: slash,
     writeFeedback: async () => `mock:${crypto.randomUUID()}`,

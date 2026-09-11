@@ -10,7 +10,6 @@ import { decryptPrivateKey, encryptPrivateKey } from "./wallet.ts";
 import { runOnchainVerification } from "./verifier-onchain.ts";
 import {
   settleStakeAuthorization,
-  discardAuthorization,
   resolveAgentAccountId,
   signStakeAuthorization,
   stakePaymentRequirements,
@@ -23,6 +22,7 @@ import { writeReputationFeedback } from "./erc8004.ts";
 import {
   claimSubmissionAttempt,
   createSubmissionAttempt,
+  discardPaymentAuthorization,
   getAgent,
   insertSubmission,
   updateSubmissionAttempt,
@@ -75,7 +75,7 @@ export interface SubmitDeps {
   settleAuth: typeof settleStakeAuthorization;
   verifyAuth: typeof verifyStakeAuthorization;
   resolvePayer: typeof resolveAgentAccountId;
-  discardAuth: typeof discardAuthorization;
+  discardAuth: typeof discardPaymentAuthorization;
   doPayout: typeof payout;
   doSlash: typeof slash;
   writeFeedback: typeof writeReputationFeedback;
@@ -90,7 +90,7 @@ const realDeps: SubmitDeps = {
   settleAuth: settleStakeAuthorization,
   verifyAuth: verifyStakeAuthorization,
   resolvePayer: resolveAgentAccountId,
-  discardAuth: discardAuthorization,
+  discardAuth: discardPaymentAuthorization,
   doPayout: payout,
   doSlash: slash,
   writeFeedback: writeReputationFeedback,
@@ -245,7 +245,7 @@ interface SettlementContext {
   exploitCalls: ExploitCall[];
   verdict: "VALID" | "INVALID";
   exploitTxHash: string;
-  auth: X402Authorization;
+  auth?: X402Authorization;
   paymentDigest?: string;
   expectedPayer?: string;
   deps: SubmitDeps;
@@ -275,7 +275,7 @@ async function settleAndComplete(ctx: SettlementContext): Promise<SubmitResult> 
       );
     }
   } else if (verdict === "VALID") {
-    deps.discardAuth(ctx.auth); // stake never moves
+    await deps.discardAuth(attemptId); // stake never moves; drop the signed bytes
     await updateSubmissionAttempt(attemptId, "accounting_pending");
     settlementTxHash = await deps.doPayout(
       targetKey,
@@ -287,6 +287,12 @@ async function settleAndComplete(ctx: SettlementContext): Promise<SubmitResult> 
     );
   } else {
     await updateSubmissionAttempt(attemptId, "payment_pending");
+    if (!ctx.auth) {
+      throw Object.assign(
+        new Error(`attempt ${attemptId} has no stored authorization to settle`),
+        { status: 409 }
+      );
+    }
     const paymentTxHash = await deps.settleAuth(
       ctx.auth,
       attemptId,
@@ -377,16 +383,26 @@ async function resumeAttempt(
     );
   }
 
-  if (!attempt.verdict || !attempt.exploitReceipt || !attempt.paymentAuthorization) {
+  if (!attempt.verdict || !attempt.exploitReceipt) {
     throw Object.assign(
-      new Error(`attempt ${attemptId} is missing the verdict or authorization needed to resume`),
+      new Error(`attempt ${attemptId} is missing the verdict needed to resume`),
+      { status: 409 }
+    );
+  }
+  // Only the INVALID branch settles, so only it needs the signed bytes back; a
+  // VALID attempt has deliberately discarded them.
+  if (attempt.verdict === "INVALID" && !attempt.paymentAuthorization) {
+    throw Object.assign(
+      new Error(`attempt ${attemptId} is missing the authorization needed to settle`),
       { status: 409 }
     );
   }
 
-  const auth = JSON.parse(
-    decryptPrivateKey(attempt.paymentAuthorization, serverConfig.serverWalletSecret)
-  ) as X402Authorization;
+  const auth = attempt.paymentAuthorization
+    ? (JSON.parse(
+        decryptPrivateKey(attempt.paymentAuthorization, serverConfig.serverWalletSecret)
+      ) as X402Authorization)
+    : undefined;
 
   return settleAndComplete({
     attemptId,

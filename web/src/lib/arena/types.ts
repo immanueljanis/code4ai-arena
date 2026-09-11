@@ -69,7 +69,17 @@ export interface Submission {
   createdAt: string
 }
 
+export interface SettlementAsset {
+  profile: 'usdc' | 'demo-hts'
+  symbol: string
+  tokenId: string
+  decimals: number
+  testToken: boolean
+}
+
 export interface StateResponse {
   submissions: Submission[]
   targets: Contest[]
+  /** Optional: older servers do not report which token actually settles. */
+  settlement?: SettlementAsset
 }
