@@ -50,13 +50,28 @@ export function stakePaymentRequirements(
   };
 }
 
+/**
+ * Resolve an agent's EVM address to its 0.0.N Hedera account.
+ *
+ * Mirror node rather than populateAccountNum: when the SDK cannot resolve the
+ * number it silently keeps the alias form, and the signer then builds a
+ * transfer that debits an alias. The facilitator rejects aliases on purpose, so
+ * an unresolved account fails closed here instead of producing an unverifiable
+ * payment.
+ */
 export async function resolveAgentAccountId(agentAddress: `0x${string}`): Promise<string> {
-  const client = createHederaClient(HEDERA_NETWORK);
-  try {
-    return (await AccountId.fromEvmAddress(0, 0, agentAddress).populateAccountNum(client)).toString();
-  } finally {
-    client.close();
+  const mirror = process.env.HEDERA_MIRROR_NODE_URL ?? "https://testnet.mirrornode.hedera.com";
+  const response = await fetch(`${mirror}/api/v1/accounts/${agentAddress}`, {
+    signal: AbortSignal.timeout(20_000),
+  });
+  if (!response.ok) {
+    throw new Error(`agent ${agentAddress} has no Hedera account yet (mirror ${response.status})`);
   }
+  const account = ((await response.json()) as { account?: string }).account;
+  if (!account || !/^\d+\.\d+\.\d+$/.test(account)) {
+    throw new Error(`agent ${agentAddress} did not resolve to a Hedera account number`);
+  }
+  return account;
 }
 
 export async function signStakeAuthorization(

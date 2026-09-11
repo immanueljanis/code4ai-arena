@@ -17,6 +17,15 @@ process.env.VERIFIER_KEY =
   process.env.TESTNET_VERIFIER_KEY ??
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 process.env.SERVER_WALLET_SECRET = "test-secret";
+// Pin the canonical profile: a developer .env running demo-hts must not change
+// what these assertions mean.
+process.env.SETTLEMENT_PROFILE = "usdc";
+process.env.HEDERA_USDC_TESTNET_ID = "0.0.429274";
+process.env.X402_FACILITATOR_URL = "https://api.testnet.blocky402.com";
+process.env.X402_FACILITATOR_ACCOUNT_ID = "0.0.7162784";
+process.env.X402_SETTLEMENT_SECRET = "";
+process.env.DEMO_HTS_TOKEN_ID = "";
+process.env.DEMO_HTS_TOKEN_ADDRESS = "";
 
 const runTestnet = process.env.RUN_TESTNET === "1";
 const TARGET = "access-control-vault";

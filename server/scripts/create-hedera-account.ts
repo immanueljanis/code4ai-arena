@@ -6,7 +6,6 @@ import {
   Hbar,
   PrivateKey,
   PublicKey,
-  AccountBalanceQuery,
 } from "@hiero-ledger/sdk";
 
 export const DEFAULT_KEY_STORE = path.join(import.meta.dir, ".hedera-accounts.json");
@@ -89,7 +88,14 @@ function testnetLedger(operatorAccountId: string, operatorKey: PrivateKey): Acco
       return receipt.accountId.toString();
     },
     async hbarBalance(accountId) {
-      return (await new AccountBalanceQuery().setAccountId(accountId).execute(client)).hbars.toString();
+      // Mirror node REST: the SDK balance query has hung here before.
+      const response = await fetch(
+        `${process.env.HEDERA_MIRROR_NODE_URL ?? "https://testnet.mirrornode.hedera.com"}/api/v1/accounts/${accountId}`,
+        { signal: AbortSignal.timeout(20_000) }
+      );
+      if (!response.ok) return "unknown";
+      const body = (await response.json()) as { balance?: { balance?: number } };
+      return `${(body.balance?.balance ?? 0) / 1e8} ℏ`;
     },
   };
 }

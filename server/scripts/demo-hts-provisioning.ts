@@ -1,5 +1,4 @@
 import {
-  AccountBalanceQuery,
   Client,
   PrivateKey,
   TokenAssociateTransaction,
@@ -93,10 +92,13 @@ function parsePositiveAmount(value: string | undefined, key: string, fallback?: 
 }
 
 function parseKey(env: Record<string, string | undefined>, key: string): PrivateKey {
+  // ECDSA, not fromString: these accounts are derived from EVM addresses, and
+  // fromString defaults to ED25519, which yields a different public key and a
+  // transaction the network rejects with INVALID_SIGNATURE.
   try {
-    return PrivateKey.fromString(required(env, key));
+    return PrivateKey.fromStringECDSA(required(env, key));
   } catch {
-    throw new Error(`env var ${key} is not a valid private key`);
+    throw new Error(`env var ${key} is not a valid ECDSA private key`);
   }
 }
 
@@ -221,12 +223,26 @@ export async function writeProvisioningState(statePath: string, state: Provision
   await rename(temporaryPath, statePath);
 }
 
-export function testnetLedger(config: ProvisioningConfig): LedgerClient {
+export const MIRROR_NODE_URL =
+  process.env.HEDERA_MIRROR_NODE_URL ?? "https://testnet.mirrornode.hedera.com";
+
+export async function mirrorHbarTinybars(accountId: string): Promise<string> {
+  const response = await fetch(`${MIRROR_NODE_URL}/api/v1/accounts/${accountId}`, {
+    signal: AbortSignal.timeout(20_000),
+  });
+  if (!response.ok) throw new Error(`mirror node returned ${response.status} for ${accountId}`);
+  const body = (await response.json()) as { balance?: { balance?: number } };
+  return String(body.balance?.balance ?? 0);
+}
+
+function testnetLedger(config: ProvisioningConfig): LedgerClient {
   const client = Client.forTestnet().setOperator(config.operatorAccountId, config.operatorKey);
   return {
     async hbarTinybars(accountId) {
-      const balance = await new AccountBalanceQuery().setAccountId(accountId).execute(client);
-      return balance.hbars.toTinybars().toString();
+      // Mirror node REST rather than AccountBalanceQuery: the SDK query has
+      // hung indefinitely here, and a balance report must never stall a
+      // sequence that is about to spend.
+      return mirrorHbarTinybars(accountId);
     },
     async createToken(tokenConfig) {
       const signedTransaction = await buildTokenCreateTransaction(tokenConfig)
@@ -240,8 +256,13 @@ export function testnetLedger(config: ProvisioningConfig): LedgerClient {
       return (await new TokenInfoQuery().setTokenId(tokenId).execute(client)) as unknown as TokenInfo;
     },
     async hasTokenAssociation(accountId, tokenId) {
-      const balance = await new AccountBalanceQuery().setAccountId(accountId).execute(client);
-      return balance.tokens?.get(tokenId) != null;
+      const response = await fetch(
+        `${MIRROR_NODE_URL}/api/v1/accounts/${accountId}/tokens?token.id=${tokenId}`,
+        { signal: AbortSignal.timeout(20_000) }
+      );
+      if (!response.ok) throw new Error(`mirror node returned ${response.status} for ${accountId}`);
+      const body = (await response.json()) as { tokens?: unknown[] };
+      return (body.tokens ?? []).length > 0;
     },
     async associateToken(tokenId, accountId, key) {
       const transaction = await new TokenAssociateTransaction()
