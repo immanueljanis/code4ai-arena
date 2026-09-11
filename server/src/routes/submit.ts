@@ -1,5 +1,11 @@
 import { Hono } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import { isAddress } from "viem";
+import {
+  MAX_SUBMIT_BODY_BYTES,
+  MAX_WAIT_BLOCKS_PER_CALL,
+  assertCallBudget,
+} from "../limits.ts";
 import { runSubmit } from "../agentRunner.ts";
 import { getTargetMeta } from "../contests.ts";
 import type { ExploitCall } from "../verifier-local.ts";
@@ -18,17 +24,31 @@ function parseCalls(raw: unknown): ExploitCall[] {
       throw new Error(`exploitCalls[${i}].entryPoint is required`);
     }
     const args = call.args && typeof call.args === "object" ? call.args : {};
+    const waitBlocks = typeof call.waitBlocks === "number" ? call.waitBlocks : undefined;
+    if (waitBlocks !== undefined) {
+      if (!Number.isInteger(waitBlocks) || waitBlocks < 0 || waitBlocks > MAX_WAIT_BLOCKS_PER_CALL) {
+        throw new Error(
+          `exploitCalls[${i}].waitBlocks must be an integer between 0 and ${MAX_WAIT_BLOCKS_PER_CALL}`
+        );
+      }
+    }
     return {
       caller: call.caller,
       entryPoint: call.entryPoint,
       args: args as Record<string, unknown>,
-      waitBlocks: typeof (call as Record<string, unknown>)['waitBlocks'] === 'number' ? ((call as Record<string, unknown>)['waitBlocks'] as number) : undefined,
+      waitBlocks,
     };
   });
 }
 
 /** Agent-native real submission: stake once, prove on-chain, settle once. */
-submit.post("/:key/submit", async (c) => {
+submit.post(
+  "/:key/submit",
+  bodyLimit({
+    maxSize: MAX_SUBMIT_BODY_BYTES,
+    onError: (c) => c.json({ error: "request body is too large" }, 413),
+  }),
+  async (c) => {
   const key = c.req.param("key");
   if (!getTargetMeta(key)) return c.json({ error: "contest not found" }, 404);
 
@@ -48,6 +68,10 @@ submit.post("/:key/submit", async (c) => {
   let calls: ExploitCall[];
   try {
     calls = parseCalls(body.exploitCalls);
+    assertCallBudget({
+      calls: calls.length,
+      totalWaitBlocks: calls.reduce((sum, call) => sum + (call.waitBlocks ?? 0), 0),
+    });
   } catch (e) {
     return c.json({ error: (e as Error).message }, 400);
   }
@@ -67,4 +91,5 @@ submit.post("/:key/submit", async (c) => {
     if (err.status) return c.json({ error: err.message }, err.status);
     return c.json({ error: err.message }, 500);
   }
-});
+  }
+);

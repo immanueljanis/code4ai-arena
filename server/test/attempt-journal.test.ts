@@ -58,6 +58,7 @@ function countingDeps(verdict: "VALID" | "INVALID"): { deps: SubmitDeps; counter
     verifyAuth: async () => ({ payer: "0.0.4242", paymentDigest: "sha256:test-digest" }),
     resolvePayer: async () => "0.0.4242",
     isSettled: async () => false,
+    guards: { gasBalance: async () => 10n ** 19n, attemptCount: async () => 0 },
     settleAuth: async () => {
       counters.settled += 1;
       return "0x" + "22".repeat(32);

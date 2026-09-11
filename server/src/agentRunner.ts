@@ -30,6 +30,7 @@ import {
   type SubmissionAttempt,
 } from "./db.ts";
 import { getTargetMeta } from "./contests.ts";
+import { assertCanSpend, realSpendGuards, type SpendGuards } from "./limits.ts";
 import { serverConfig } from "./config.ts";
 import type { ExploitCall } from "./verifier-local.ts";
 
@@ -80,6 +81,7 @@ export interface SubmitDeps {
   writeFeedback: typeof writeReputationFeedback;
   fundAgent: typeof ensureAgentUsdc;
   isSettled: typeof isAttemptSettled;
+  guards: SpendGuards;
 }
 
 const realDeps: SubmitDeps = {
@@ -94,6 +96,7 @@ const realDeps: SubmitDeps = {
   writeFeedback: writeReputationFeedback,
   fundAgent: ensureAgentUsdc,
   isSettled: isAttemptSettled,
+  guards: realSpendGuards,
 };
 
 /** The stake amount, USDC 6 decimals (flat 1 USDC per target). */
@@ -150,6 +153,11 @@ export async function runSubmit(
 
   const meta = getTargetMeta(targetKey);
   if (!meta) throw Object.assign(new Error("contest not found"), { status: 404 });
+
+  // A submission spends operator HBAR on a fresh deployment, a gas top-up and
+  // every exploit call, so refuse before any of that when the arena cannot
+  // afford it or one agent is consuming the budget.
+  await assertCanSpend(agent.id, deps.guards);
 
   // The server holds the agent's encrypted wallet; decrypt it so the exploit
   // calls can be signed by the agent's own address.

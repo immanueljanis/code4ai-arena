@@ -55,6 +55,7 @@ function mockDeps(verdict: "VALID" | "INVALID") {
     verifyAuth: async () => ({ payer: "0.0.4242", paymentDigest: "sha256:test-digest" }),
     resolvePayer: async () => "0.0.4242",
     isSettled: async () => false,
+    guards: { gasBalance: async () => 10n ** 19n, attemptCount: async () => 0 },
     fundAgent: async () => null,
   } as SubmitDeps;
 }

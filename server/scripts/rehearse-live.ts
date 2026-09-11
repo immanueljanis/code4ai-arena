@@ -29,6 +29,7 @@ const { decryptPrivateKey, encryptPrivateKey, generateAgentWallet } = await impo
 const { runOnchainVerification } = await import("../src/verifier-onchain.ts");
 const { payout, slash, invalidatePool, getPool, isAttemptSettled } = await import("../src/arena.ts");
 const { ensureAgentUsdc, ERC20_ABI } = await import("../src/fund.ts");
+const { realSpendGuards } = await import("../src/limits.ts");
 import type { SubmitDeps } from "../src/agentRunner.ts";
 
 const STAKE = 1_000_000n;
@@ -98,6 +99,7 @@ function stakeTransferDeps(agentKey: `0x${string}`): SubmitDeps {
     writeFeedback: async () => `mock:${crypto.randomUUID()}`,
     fundAgent: ensureAgentUsdc,
     isSettled: isAttemptSettled,
+    guards: realSpendGuards,
   } as SubmitDeps;
 }
 
