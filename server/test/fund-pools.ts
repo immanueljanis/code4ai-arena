@@ -5,7 +5,7 @@ import path from "node:path";
 
 const RPC = "https://testnet.hashio.io/api";
 const USDC = "0x0000000000000000000000000000000000068cda";
-const ARENA = "0x8771D35f42e9cB46b7Ec55fb712DFEfC752f3ae0";
+const ARENA = "0x5928df319b3D062203D6aF33A6797df4a96b18a4";
 
 const chain = { id: 296, name: "Hedera Testnet", nativeCurrency: { name: "HBAR", symbol: "HBAR", decimals: 18 }, rpcUrls: { default: { http: [RPC] } }, testnet: true } as const;
 const publicClient = createPublicClient({ chain, transport: http(RPC) });

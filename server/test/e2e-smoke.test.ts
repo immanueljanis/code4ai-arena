@@ -25,7 +25,7 @@ beforeAll(async () => {
       DATABASE_URL,
       HEDERA_TESTNET_RPC_URL: process.env.HEDERA_TESTNET_RPC_URL ?? "https://testnet.hashio.io/api",
       HEDERA_USDC_TESTNET_ADDRESS: "0x0000000000000000000000000000000000068cda",
-      ARENA_ADDRESS: "0x8771D35f42e9cB46b7Ec55fb712DFEfC752f3ae0",
+      ARENA_ADDRESS: process.env.REHEARSAL_ARENA_ADDRESS ?? "0x5928df319b3D062203D6aF33A6797df4a96b18a4",
       HEDERA_ARENA_ACCOUNT_ID: "0.0.1234",
       ACCESS_CONTROL_VAULT_ADDRESS: "0x73524775e7c01E862F8d0E381D1154d7939cC160",
       ROUNDING_VAULT_ADDRESS: "0x9Cb289aa00508D1B1eb8Aa1Eb21F552Eed4dA37A",
@@ -68,12 +68,13 @@ describe("E2E smoke — server + anvil playground", () => {
     expect(body.ok).toBe(true);
   });
 
-  it("lists the 3 targets with live pool", async () => {
+  it("lists every seeded target with a live pool", async () => {
     const res = await fetch(`${BASE}/api/contests`);
     expect(res.status).toBe(200);
     const targets = (await res.json()) as { key: string; poolRemaining: string }[];
-    expect(targets.map((t) => t.key)).toEqual([
+    expect(targets.map((t) => t.key).sort()).toEqual([
       "access-control-vault",
+      "reentrancy-vault",
       "rounding-vault",
       "time-window-vault",
     ]);
@@ -111,6 +112,6 @@ describe("E2E smoke — server + anvil playground", () => {
     expect(res.status).toBe(200);
     const body = (await res.json()) as { submissions: unknown[]; targets: unknown[] };
     expect(Array.isArray(body.submissions)).toBe(true);
-    expect(body.targets.length).toBe(3);
+    expect(body.targets.length).toBe(4);
   }, 30000);
 });

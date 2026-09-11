@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { getPool } from "../arena.ts";
+import { serverConfig } from "../config.ts";
 import { listSubmissions, listTargets } from "../db.ts";
 
 export const spectator = new Hono();
@@ -18,5 +19,15 @@ spectator.get("/state", async (c) => {
     }))
   );
 
-  return c.json({ submissions, targets: targetsWithPools });
+  return c.json({
+    submissions,
+    targets: targetsWithPools,
+    settlement: {
+      profile: serverConfig.settlementProfile,
+      symbol: serverConfig.settlementSymbol,
+      tokenId: serverConfig.settlementTokenId,
+      decimals: serverConfig.settlementDecimals,
+      testToken: serverConfig.settlementProfile === "demo-hts",
+    },
+  });
 });

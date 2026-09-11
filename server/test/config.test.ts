@@ -4,7 +4,7 @@ import { loadConfig } from "../src/config.ts";
 const validEnv = {
   HEDERA_TESTNET_RPC_URL: "https://testnet.hashio.io/api",
   HEDERA_USDC_TESTNET_ADDRESS: "0x0000000000000000000000000000000000068cda",
-  ARENA_ADDRESS: "0x8771D35f42e9cB46b7Ec55fb712DFEfC752f3ae0",
+  ARENA_ADDRESS: process.env.REHEARSAL_ARENA_ADDRESS ?? "0x5928df319b3D062203D6aF33A6797df4a96b18a4",
   HEDERA_ARENA_ACCOUNT_ID: "0.0.1234",
   ACCESS_CONTROL_VAULT_ADDRESS: "0x73524775e7c01E862F8d0E381D1154d7939cC160",
   ROUNDING_VAULT_ADDRESS: "0x9Cb289aa00508D1B1eb8Aa1Eb21F552Eed4dA37A",
@@ -21,7 +21,7 @@ describe("loadConfig", () => {
     expect(cfg.chainId).toBe(296);
     expect(cfg.rpcUrl).toBe("https://testnet.hashio.io/api");
     expect(cfg.usdcAddress).toBe("0x0000000000000000000000000000000000068cda");
-    expect(cfg.arenaAddress).toBe("0x8771D35f42e9cB46b7Ec55fb712DFEfC752f3ae0");
+    expect(cfg.arenaAddress).toBe("0x5928df319b3D062203D6aF33A6797df4a96b18a4");
     expect(cfg.vaultAddresses.accessControl).toBe(
       "0x73524775e7c01E862F8d0E381D1154d7939cC160"
     );

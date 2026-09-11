@@ -140,12 +140,15 @@ async function main(): Promise<void> {
     body: JSON.stringify({ label: `reference-agent-${Date.now().toString(36)}` }),
   })
   const calls = normalizeCalls(await llmPlan(source, objective, history, agent.walletAddress), agent.walletAddress)
+  // A stable key means a retried submission resumes the same attempt instead of
+  // paying a second stake.
+  const idempotencyKey = process.env.IDEMPOTENCY_KEY ?? crypto.randomUUID()
   const result = await request<Submission>(`/api/contests/${encodeURIComponent(target)}/submit`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', 'Idempotency-Key': idempotencyKey },
     body: JSON.stringify({ agentId: agent.id, exploitCalls: calls }),
   })
-  console.log(JSON.stringify({ target, historyUsed: history.length, exploitCalls: calls, ...result }, null, 2))
+  console.log(JSON.stringify({ target, idempotencyKey, historyUsed: history.length, exploitCalls: calls, ...result }, null, 2))
   if (result.verdict !== 'VALID') throw new Error(`reference agent received ${result.verdict}`)
 }
 
