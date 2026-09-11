@@ -9,6 +9,7 @@ dataSources:
       address: "0x838bf9E95CB12Dd76a54C9f9D2E3082EAF928270"
       abi: PolyManager
       startBlock: 12996659
+      endBlock: 12996659
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9
@@ -28,7 +29,8 @@ dataSources:
     source:
       address: "0x57aB1E0003F623289CD798B1824Be09a793e4Bec"
       abi: ResupplyToken
-      startBlock: 22785460
+      startBlock: 22785461
+      endBlock: 22785461
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9
@@ -48,7 +50,8 @@ dataSources:
     source:
       address: "0xbb9bc244d798123fde783fcc1c72d3bb8c189413"
       abi: TheDao
-      startBlock: 1600000
+      startBlock: 1718497
+      endBlock: 1718497
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.9

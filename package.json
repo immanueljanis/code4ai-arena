@@ -3,11 +3,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "bun run check:contracts && bun run check:server && bun run check:facilitator && bun run check:gateway && bun run check:web",
+    "check": "bun run check:contracts && bun run check:server && bun run check:facilitator && bun run check:gateway && bun run check:web && bun run check:subgraph",
     "check:contracts": "cd contracts && forge test --match-path \"test/*\"",
     "check:server": "cd server && bun test --timeout 20000",
     "check:facilitator": "cd facilitator && bun test",
     "check:gateway": "cd gateway && bun test",
-    "check:web": "cd web && bun test"
+    "check:web": "cd web && bun test",
+    "check:subgraph": "cd subgraph && bun run build"
   }
 }

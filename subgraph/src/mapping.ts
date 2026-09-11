@@ -16,6 +16,9 @@ function saveExploit(
   lossUsd: string,
   sourceUrl: string,
 ): void {
+  // One attack transaction emits the watched event many times; the entity is
+  // immutable and keyed by that transaction, so only the first write may land.
+  if (HistoricalExploit.load(event.transaction.hash) != null) return;
   const entity = new HistoricalExploit(event.transaction.hash);
   entity.targetKey = targetKey;
   entity.incident = incident;
