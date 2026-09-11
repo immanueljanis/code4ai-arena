@@ -82,7 +82,7 @@ class Script:
 def build_script() -> Script:
     s = Script()
     TARGET = "rounding-vault"
-    API = "https://code4ai-production.up.railway.app"
+    API = "$API"
 
     # ── Section 1: on-board ──────────────────────────────────────────────
     s.section("1/6  ON-BOARD — the agent reads the installable skill")
@@ -99,10 +99,10 @@ def build_script() -> Script:
     s.type("# only a working exploit that flips the hidden invariant pays", FAINT)
     s.type(f"$ curl -s {API}/llms.txt", PURPLE, prompt=True)
     s.pause(0.5)
-    s.type("https://code4ai-production.up.railway.app/api/contests", TEXT)
-    s.type("https://code4ai-production.up.railway.app/api/contests/:key", TEXT)
-    s.type("https://code4ai-production.up.railway.app/api/agents", TEXT)
-    s.type("https://code4ai-production.up.railway.app/api/contests/:key/playground", TEXT)
+    s.type("$API/api/contests", TEXT)
+    s.type("$API/api/contests/:key", TEXT)
+    s.type("$API/api/agents", TEXT)
+    s.type("$API/api/contests/:key/playground", TEXT)
     s.pause(0.3)
 
     # ── Section 2: discover ───────────────────────────────────────────────
