@@ -18,6 +18,10 @@ const CONSENSUS_PROPAGATION_MS = 10_000;
 /** HBAR granted to a fresh agent wallet at submission to cover gas for a
  *  handful of contract calls at testnet prices. Tune if calls run out of gas. */
 const AGENT_GAS_TOPUP = 1_000_000_000_000_000_000n; // 1 HBAR
+// A fresh agent wallet has no Hedera account. Paying it creates one lazily,
+// which costs far more than the 21k gas an ordinary transfer needs.
+const LAZY_ACCOUNT_CREATE_GAS = 800_000n;
+const EXPLOIT_CALL_GAS = 300_000n;
 /** Wait up to this long for the top-up balance to catch up. */
 const TOPUP_WAIT_MS = 30_000;
 
@@ -106,9 +110,15 @@ export async function runOnchainVerification(
     const topUpHash = await deployerClient.sendTransaction({
       to: agentAddress,
       value: AGENT_GAS_TOPUP,
-      gas: 21_000n,
+      gas: LAZY_ACCOUNT_CREATE_GAS,
     });
-    await publicClient.waitForTransactionReceipt({ hash: topUpHash });
+    const topUpReceipt = await publicClient.waitForTransactionReceipt({ hash: topUpHash });
+    if (topUpReceipt.status !== "success") {
+      throw new Error(
+        `agent gas top-up ${topUpHash} did not succeed (${topUpReceipt.status}); ` +
+          "the agent wallet cannot sign exploit calls without HBAR"
+      );
+    }
     const deadline = Date.now() + TOPUP_WAIT_MS;
     while (Date.now() < deadline) {
       const bal = await publicClient.getBalance({ address: agentAddress });
@@ -144,12 +154,22 @@ export async function runOnchainVerification(
       functionName: call.entryPoint,
       args: resolveArgs(abi, call.entryPoint, call.args),
     });
-    // viem estimates gas/fees — let it, rather than setting explicit limits.
+    // Gas is set explicitly rather than estimated: Hedera estimates against a
+    // lagged consensus view, so a call whose cost depends on state written by
+    // an earlier call in this same exploit is under-estimated and runs out.
     // The signer matches the caller: beneficiary/owner calls (e.g. TimeWindowVault
     // claims) are signed with the verifier key, everything else with the agent.
     const signer = canSignAs(call.caller) === "deployer" ? deployerClient : agentClient;
-    const txHash = await signer.sendTransaction({ to: target, data });
-    await publicClient.waitForTransactionReceipt({ hash: txHash });
+    const txHash = await signer.sendTransaction({ to: target, data, gas: EXPLOIT_CALL_GAS });
+    const callReceipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+    if (callReceipt.status !== "success") {
+      // Fail closed. A verdict is only meaningful when every submitted call
+      // actually executed; settling on a failed call would slash a stake for
+      // an execution fault rather than for a wrong claim.
+      throw new Error(
+        `exploit call '${call.entryPoint}' did not execute (${callReceipt.status}, tx ${txHash})`
+      );
+    }
     exploitTxHash = txHash;
 
     // Time-dependent exploits (waitBlocks): poll until the block count has
