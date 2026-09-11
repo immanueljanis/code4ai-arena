@@ -50,7 +50,7 @@ beforeEach(async () => {
   process.env.DEMO_HTS_TOKEN_ID = '0.0.5555'
   process.env.HEDERA_ARENA_ACCOUNT_ID = '0.0.2002'
   process.env.X402_FACILITATOR_ACCOUNT_ID = '0.0.800'
-  app = (await import(`../src/index.ts?cache=${crypto.randomUUID()}`)).default
+  app = (await import(`../src/index.ts?cache=${crypto.randomUUID()}`)).app
 })
 
 afterEach(() => {

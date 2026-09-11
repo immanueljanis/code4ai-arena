@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 
 const TEST_DB_URL =
-  process.env.TEST_DATABASE_URL ?? "postgres://postgres:postgres@localhost:5440/code4ai";
+  process.env.TEST_DATABASE_URL ?? "postgres://postgres:postgres@localhost:5440/code4ai_test";
 
 // db.ts reads DATABASE_URL at module load — set it BEFORE the dynamic import.
 process.env.DATABASE_URL = TEST_DB_URL;
@@ -15,7 +15,16 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await sql`DROP TABLE IF EXISTS submissions, invariants, targets, agents CASCADE`;
+  // This suite drops tables. Refuse to run against anything that is not
+  // obviously a test database: the default once pointed at the live one and
+  // destroyed real agent state.
+  const database = new URL(process.env.DATABASE_URL!).pathname.slice(1);
+  if (!database.includes("test")) {
+    throw new Error(
+      `refusing to drop tables in "${database}" — point TEST_DATABASE_URL at a test database`
+    );
+  }
+  await sql`DROP TABLE IF EXISTS submission_attempts, submissions, invariants, targets, agents CASCADE`;
   await sql.end();
 });
 

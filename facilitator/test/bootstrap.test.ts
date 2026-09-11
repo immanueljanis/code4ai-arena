@@ -8,7 +8,7 @@ import { hederaFacilitatorSigner } from "../src/signer.ts";
 import { payment, policy, type Body } from "./helpers.ts";
 
 const databaseUrl =
-  process.env.TEST_DATABASE_URL ?? "postgres://postgres:postgres@localhost:5440/code4ai";
+  process.env.TEST_DATABASE_URL ?? "postgres://postgres:postgres@localhost:5440/code4ai_test";
 const sql = new SQL(databaseUrl);
 
 const key = PrivateKey.generateECDSA();

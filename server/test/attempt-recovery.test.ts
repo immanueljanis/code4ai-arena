@@ -21,7 +21,7 @@ process.env.X402_SETTLEMENT_SECRET = "";
 process.env.DEMO_HTS_TOKEN_ID = "";
 process.env.DEMO_HTS_TOKEN_ADDRESS = "";
 process.env.TEST_DATABASE_URL =
-  process.env.TEST_DATABASE_URL ?? "postgres://postgres:postgres@localhost:5440/code4ai";
+  process.env.TEST_DATABASE_URL ?? "postgres://postgres:postgres@localhost:5440/code4ai_test";
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL;
 
 const { initSchema, insertAgent, getSubmissionAttempt } = await import("../src/db.ts");

@@ -8,7 +8,7 @@ const env: Record<string, string | undefined> = {
   FACILITATOR_STAKE_AMOUNT: "1000000",
   HEDERA_ARENA_ACCOUNT_ID: "0.0.2002",
   X402_SETTLEMENT_SECRET: "test-settlement-secret",
-  DATABASE_URL: "postgres://postgres:postgres@localhost:5440/code4ai",
+  DATABASE_URL: "postgres://postgres:postgres@localhost:5440/code4ai_test",
 };
 
 describe("facilitator configuration", () => {

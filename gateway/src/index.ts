@@ -93,9 +93,7 @@ app.post('/api/contests/:key/submit', async (c) => {
   return new Response(text, { status: upstream.status, headers })
 })
 
-if (import.meta.main) {
-  Bun.serve({ port, fetch: app.fetch })
-  console.log(`gateway listening on http://localhost:${port}`)
-}
-
-export default app
+// Bun auto-serves a default export carrying `fetch`, so calling Bun.serve here
+// too would bind the port twice and crash on startup.
+export default { port, fetch: app.fetch }
+export { app }

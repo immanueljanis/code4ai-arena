@@ -10,7 +10,7 @@ import path from "node:path";
  */
 const BASE = process.env.E2E_API_URL ?? "http://localhost:8787";
 const DATABASE_URL =
-  process.env.DATABASE_URL ?? "postgres://postgres:postgres@localhost:5440/code4ai";
+  process.env.DATABASE_URL ?? "postgres://postgres:postgres@localhost:5440/code4ai_test";
 
 let serverProc: ChildProcess | null = null;
 

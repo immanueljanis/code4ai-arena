@@ -3,7 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, test } from "bun:tes
 import { initSettlementSchema, postgresSettlementPermissions } from "../src/permissions.ts";
 
 const databaseUrl =
-  process.env.TEST_DATABASE_URL ?? "postgres://postgres:postgres@localhost:5440/code4ai";
+  process.env.TEST_DATABASE_URL ?? "postgres://postgres:postgres@localhost:5440/code4ai_test";
 const sql = new SQL(databaseUrl);
 const permissions = postgresSettlementPermissions(sql);
 
