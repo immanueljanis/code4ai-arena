@@ -9,6 +9,6 @@
     "check:facilitator": "cd facilitator && bun test",
     "check:gateway": "cd gateway && bun test",
     "check:web": "cd web && bun test",
-    "check:subgraph": "cd subgraph && bun run build"
+    "check:subgraph": "cd subgraph && bun run verify && bun run build"
   }
 }

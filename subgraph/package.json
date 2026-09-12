@@ -5,7 +5,8 @@
     "codegen": "graph codegen",
     "build": "graph build",
     "deploy": "graph deploy --studio ${SUBGRAPH_SLUG}",
-    "sanity": "bun run scripts/sanity-query.ts"
+    "sanity": "bun run scripts/sanity-query.ts",
+    "verify": "bun run scripts/verify-manifest.ts"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.98.1",
