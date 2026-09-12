@@ -21,6 +21,15 @@ export function verifyManifest(root: string = ROOT): Problem[] {
 
   if (blocks.length === 0) problems.push({ dataSource: "(manifest)", issue: "no data sources" });
 
+  // AssemblyScript resolves === / !== by reference, so a string compared that
+  // way never matches and the handler silently does nothing.
+  if (/[!=]==[^=]/.test(mapping)) {
+    problems.push({
+      dataSource: "src/mapping.ts",
+      issue: "uses === or !==, which compare references in AssemblyScript; use == or !=",
+    });
+  }
+
   for (const block of blocks) {
     const name = block.match(/name: (\w+)/)?.[1] ?? "(unnamed)";
     const abiName = block.match(/abi: (\w+)/)?.[1];
@@ -63,10 +72,12 @@ export function verifyManifest(root: string = ROOT): Problem[] {
     // Each exploit lives in one block; an unbounded source scans to chain head.
     if (!Number.isInteger(startBlock) || startBlock <= 0) {
       problems.push({ dataSource: name, issue: "startBlock is missing or not positive" });
-    } else if (endBlock !== startBlock) {
+    } else if (!(endBlock >= startBlock && endBlock <= startBlock + 2)) {
+      // A tight window, not an exact match: endBlock may be exclusive, so the
+      // attack block needs a one-block margin to be processed at all.
       problems.push({
         dataSource: name,
-        issue: `endBlock ${endBlock} should pin the same block as startBlock ${startBlock}`,
+        issue: `endBlock ${endBlock} should sit within two blocks of startBlock ${startBlock}`,
       });
     }
   }

@@ -35,7 +35,7 @@ function saveExploit(
 }
 
 export function handlePolyExploit(event: VerifyHeaderAndExecuteTxEvent): void {
-  if (event.transaction.hash.toHexString() !== POLY_TX) return;
+  if (event.transaction.hash.toHexString() != POLY_TX) return;
   saveExploit(
     event,
     "access-control-vault",
@@ -47,7 +47,7 @@ export function handlePolyExploit(event: VerifyHeaderAndExecuteTxEvent): void {
 }
 
 export function handleResupplyExploit(event: ResupplyTransfer): void {
-  if (event.transaction.hash.toHexString() !== RESUPPLY_TX) return;
+  if (event.transaction.hash.toHexString() != RESUPPLY_TX) return;
   saveExploit(
     event,
     "rounding-vault",
@@ -59,7 +59,7 @@ export function handleResupplyExploit(event: ResupplyTransfer): void {
 }
 
 export function handleDaoExploit(event: DaoTransfer): void {
-  if (event.transaction.hash.toHexString() !== DAO_TX) return;
+  if (event.transaction.hash.toHexString() != DAO_TX) return;
   saveExploit(
     event,
     "reentrancy-vault",
