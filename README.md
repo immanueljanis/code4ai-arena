@@ -200,6 +200,12 @@ there. Verify everything from the repo root:
 bun run check      # contracts 29 · server 180 · facilitator 121 · gateway 8 · web 43
 ```
 
+## Deploying
+
+Four services: Postgres, the arena server, the facilitator, and the web build.
+Both Docker images are verified to build and serve. Every variable each service
+needs is in [DEPLOY.md](DEPLOY.md).
+
 ## Repo layout
 
 ```
