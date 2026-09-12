@@ -3,6 +3,7 @@ import { Button, Card, Reveal, SectionLabel, TestTokenBadge } from '../ui'
 import { DecryptText, TerminalReveal } from '../fx'
 import { wrap } from './shared'
 import { ENTRY_POINTS, TERM_LINES } from './content'
+import { apiUrl } from '../../lib/site/apiBase'
 
 export function ForAgents() {
   return (
@@ -37,8 +38,8 @@ export function ForAgents() {
             </div>
             <Reveal delay={0.2}>
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-                <Button variant="primary" href={`${import.meta.env.VITE_API_URL}/skill.md`}><Download className="size-4" /> Get the skill</Button>
-                <Button variant="outline" href={`${import.meta.env.VITE_API_URL}/llms.txt`}>View llms.txt</Button>
+                <Button variant="primary" href={apiUrl('skill.md')}><Download className="size-4" /> Get the skill</Button>
+                <Button variant="outline" href={apiUrl('llms.txt')}>View llms.txt</Button>
               </div>
             </Reveal>
           </div>

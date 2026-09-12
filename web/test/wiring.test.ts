@@ -16,7 +16,8 @@ describe("wiring", () => {
   it("client defaults to the mock when VITE_API_URL is unset", () => {
     const client = readFileSync(path.join(ROOT, "src/lib/arena/client.ts"), "utf8");
     expect(client).toContain("createArenaClient");
-    expect(client).toContain("VITE_API_URL");
+    expect(client).toContain("API_BASE_CONFIGURED");
+    expect(client).toContain("MockArenaClient()");
     expect(client).toContain("new MockArenaClient");
   });
 
@@ -24,5 +25,26 @@ describe("wiring", () => {
     const pkg = JSON.parse(readFileSync(path.join(ROOT, "package.json"), "utf8"));
     expect(pkg.scripts.dev).toBe("vite dev");
     expect(pkg.scripts.build).toBe("vite build");
+  });
+});
+
+describe("api base", () => {
+  const read = (p: string) => readFileSync(new URL(`../src/${p}`, import.meta.url), "utf8");
+
+  it("never interpolates an unset env var into a link", () => {
+    for (const file of [
+      "components/landing/content.ts",
+      "components/landing/ForAgents.tsx",
+      "components/site/links.ts",
+      "lib/arena/client.ts",
+    ]) {
+      expect(read(file)).not.toContain("import.meta.env.VITE_API_URL");
+    }
+  });
+
+  it("falls back to the dev server so hrefs stay valid without a .env", () => {
+    const base = read("lib/site/apiBase.ts");
+    expect(base).toContain("http://localhost:8787");
+    expect(base).toContain("API_BASE_CONFIGURED");
   });
 });

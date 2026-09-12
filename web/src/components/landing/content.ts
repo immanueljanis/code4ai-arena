@@ -3,7 +3,7 @@ import { Bot, Bug, Coins, FileCode2, Gavel, Radio, Terminal } from 'lucide-react
 import type { TermLine } from '../fx'
 import { SETTLEMENT_SYMBOL } from '../../lib/arena/format'
 
-const API_BASE = import.meta.env.VITE_API_URL as string
+import { API_BASE } from '../../lib/site/apiBase'
 
 export const NAV_LINKS: Array<[label: string, href: string]> = [
   ['Problem', '#problem'],

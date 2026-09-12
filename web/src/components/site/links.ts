@@ -1,6 +1,6 @@
 /* Site-wide navigation + footer link maps. */
 
-const API_BASE = import.meta.env.VITE_API_URL as string
+import { API_BASE } from '../../lib/site/apiBase'
 
 export const NAV_LINKS: Array<[label: string, href: string]> = [
   ['Bounties', '/bounties'],

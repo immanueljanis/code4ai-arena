@@ -3,6 +3,7 @@
    touching components. */
 
 import { SEED_CONTESTS, SEED_STATE } from './fixtures'
+import { API_BASE, API_BASE_CONFIGURED } from '../site/apiBase'
 import type {
   AgentRegistration,
   Contest,
@@ -176,6 +177,5 @@ export class HttpArenaClient implements ArenaClient {
 
 /** Pick the implementation: live HTTP if configured, otherwise the in-memory mock. */
 export function createArenaClient(): ArenaClient {
-  const base = import.meta.env.VITE_API_URL as string | undefined
-  return base ? new HttpArenaClient(base) : new MockArenaClient()
+  return API_BASE_CONFIGURED ? new HttpArenaClient(API_BASE) : new MockArenaClient()
 }
