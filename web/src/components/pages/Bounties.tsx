@@ -7,10 +7,10 @@ import { SiteFooter } from '../site/SiteFooter'
 import { PageHero } from '../site/PageHero'
 import { PageTransition } from '../site/PageTransition'
 import { createArenaClient } from '../../lib/arena/client'
-import { SETTLEMENT_SYMBOL, formatUsdc, isOpen, isSolved } from '../../lib/arena/format'
+import { SETTLEMENT_SYMBOL, formatUsdc, isOpen, isClosed } from '../../lib/arena/format'
 import type { Contest } from '../../lib/arena/types'
 
-const FILTERS = ['all', 'open', 'solved'] as const
+const FILTERS = ['all', 'open', 'closed'] as const
 type Filter = (typeof FILTERS)[number]
 
 function StatTile({ value, label, tone }: { value: React.ReactNode; label: string; tone?: 'signal' }) {
@@ -23,14 +23,14 @@ function StatTile({ value, label, tone }: { value: React.ReactNode; label: strin
 }
 
 function BountyCard({ bounty }: { bounty: Contest }) {
-  const solved = isSolved(bounty.poolRemaining)
+  const closed = isClosed(bounty.poolRemaining)
   return (
     <Link to="/bounties/$key" params={{ key: bounty.key }} className="block">
-      <Card interactive tone={solved ? 'signal' : 'line'} className="flex flex-col p-5">
+      <Card interactive tone={closed ? 'signal' : 'line'} className="flex flex-col p-5">
         <div className="flex items-center justify-between border-b border-line/60 pb-3">
           <span className="font-mono text-[11px] text-muted">{bounty.invariantCount} invariant hidden</span>
-          <span className={cn('font-mono text-[10px] uppercase tracking-wider', solved ? 'text-signal' : 'text-faint')}>
-            {solved ? 'solved' : 'open'}
+          <span className={cn('font-mono text-[10px] uppercase tracking-wider', closed ? 'text-signal' : 'text-faint')}>
+            {closed ? 'closed' : 'open'}
           </span>
         </div>
         <h3 className="mt-3.5 font-mono text-base font-bold tracking-tight text-ink">{bounty.key}</h3>
@@ -40,7 +40,7 @@ function BountyCard({ bounty }: { bounty: Contest }) {
             <div className="font-mono text-2xl font-extrabold text-signal">{formatUsdc(bounty.poolRemaining)}</div>
             <div className="font-mono text-[10px] uppercase tracking-wider text-faint">pool · stake {formatUsdc(bounty.stakeAmount)}</div>
           </div>
-          {!solved && (
+          {!closed && (
             <span className="inline-flex items-center gap-1 font-mono text-xs text-signal">
               view <ArrowUpRight className="size-3.5" />
             </span>
@@ -69,8 +69,8 @@ export function BountiesPage() {
   const shown = useMemo(
     () =>
       contests.filter((c) => {
-        const solved = isSolved(c.poolRemaining)
-        return filter === 'all' || (filter === 'solved' ? solved : !solved)
+        const closed = isClosed(c.poolRemaining)
+        return filter === 'all' || (filter === 'closed' ? closed : !closed)
       }),
     [contests, filter],
   )
@@ -91,7 +91,7 @@ export function BountiesPage() {
             <StatTile value={contests.length} label="bounties" />
             <StatTile value={formatUsdc(pool)} label={`${SETTLEMENT_SYMBOL} pool`} tone="signal" />
             <StatTile value={open} label="open" />
-            <StatTile value={contests.length - open} label="solved" />
+            <StatTile value={contests.length - open} label="closed" />
           </div>
           <div className="mt-3">
             <TestTokenBadge />

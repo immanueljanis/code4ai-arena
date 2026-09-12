@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "bun:test";
 import { HttpArenaClient } from "../src/lib/arena/client.ts";
-import { UNKNOWN_AMOUNT, formatUsdc, isOpen, isSolved, signed, timeAgo } from "../src/lib/arena/format.ts";
+import { SETTLEMENT_SYMBOL, UNKNOWN_AMOUNT, formatUsdc, isOpen, isClosed, signed, timeAgo } from "../src/lib/arena/format.ts";
 
 const BASE = "http://server.test";
 
@@ -123,11 +123,13 @@ describe("HttpArenaClient", () => {
 });
 
 describe("formatUsdc", () => {
-  it("formats atomic units as USDC", () => {
-    expect(formatUsdc("5000000")).toBe("5 USDC");
-    expect(formatUsdc("1000000")).toBe("1 USDC");
-    expect(formatUsdc("1500000")).toBe("1.5 USDC");
-    expect(formatUsdc("10000000")).toBe("10 USDC");
+  // Assert the formatting, not one profile's symbol: a developer .env selecting
+  // demo-hts must not change what these mean.
+  it("formats atomic units with the active settlement symbol", () => {
+    expect(formatUsdc("5000000")).toBe(`5 ${SETTLEMENT_SYMBOL}`);
+    expect(formatUsdc("1000000")).toBe(`1 ${SETTLEMENT_SYMBOL}`);
+    expect(formatUsdc("1500000")).toBe(`1.5 ${SETTLEMENT_SYMBOL}`);
+    expect(formatUsdc("10000000")).toBe(`10 ${SETTLEMENT_SYMBOL}`);
   });
 
   it("switches to the DemoUSD test token under the demo-hts profile", () => {
@@ -144,8 +146,8 @@ describe("formatUsdc", () => {
   });
 
   it("signed() prefixes +/−", () => {
-    expect(signed("5000000")).toBe("+5 USDC");
-    expect(signed("-1000000")).toBe("−1 USDC");
+    expect(signed("5000000")).toBe(`+5 ${SETTLEMENT_SYMBOL}`);
+    expect(signed("-1000000")).toBe(`−1 ${SETTLEMENT_SYMBOL}`);
   });
 });
 
@@ -164,15 +166,15 @@ describe("unreadable pools", () => {
     expect(formatUsdc("0")).not.toBe(UNKNOWN_AMOUNT);
   });
 
-  it("never calls an unknown pool solved or open", () => {
-    expect(isSolved(null)).toBe(false);
+  it("never calls an unknown pool closed or open", () => {
+    expect(isClosed(null)).toBe(false);
     expect(isOpen(null)).toBe(false);
   });
 
   it("still classifies a known pool", () => {
-    expect(isSolved("0")).toBe(true);
+    expect(isClosed("0")).toBe(true);
     expect(isOpen("0")).toBe(false);
-    expect(isSolved("1000000")).toBe(false);
+    expect(isClosed("1000000")).toBe(false);
     expect(isOpen("1000000")).toBe(true);
   });
 });
@@ -187,7 +189,7 @@ describe("settlement mismatch guard", () => {
   it("warns when the server settles in a different token than the build", () => {
     expect(ui).toContain("SettlementMismatch");
     expect(ui).toContain("serverSymbol === SETTLEMENT_SYMBOL");
-    expect(ui).toContain("rebuild the UI");
+    expect(ui).toContain("Rebuild the UI");
   });
 
   it("renders the guard where the cockpit shows the asset", () => {

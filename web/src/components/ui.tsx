@@ -115,7 +115,7 @@ export function SettlementMismatch({ serverSymbol }: { serverSymbol?: string }) 
   if (!serverSymbol || serverSymbol === SETTLEMENT_SYMBOL) return null
   return (
     <Tag tone="slash">
-      settles in {serverSymbol}, not {SETTLEMENT_SYMBOL} — rebuild the UI
+      settles in {serverSymbol}, not {SETTLEMENT_SYMBOL}. Rebuild the UI
     </Tag>
   )
 }

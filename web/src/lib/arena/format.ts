@@ -26,8 +26,12 @@ export function formatUsdc(amount: string | number | bigint | null | undefined):
 export const shortHash = (hash: string, edge = 4): string =>
   hash.length > edge * 2 + 2 ? `${hash.slice(0, edge + 2)}…${hash.slice(-edge)}` : hash
 
-/** Pool state when the amount may be unreadable; unknown is not solved. */
-export const isSolved = (poolRemaining: string | null): boolean =>
+/**
+ * An empty pool. Deliberately not "solved": a zero pool cannot tell a bounty
+ * that was won from one that was never funded, and claiming the former would
+ * assert something the data does not support. Unknown is never closed.
+ */
+export const isClosed = (poolRemaining: string | null): boolean =>
   poolRemaining !== null && BigInt(poolRemaining) <= 0n
 
 export const isOpen = (poolRemaining: string | null): boolean =>

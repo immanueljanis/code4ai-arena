@@ -11,7 +11,7 @@ function ContestCard({ contest, active, onSelect }: { contest: Contest; active: 
       <Card interactive tone={active ? 'signal' : 'line'} className={cn('p-4', active && 'bg-surface')}>
         <div className="flex items-center justify-between">
           <span className={cn('font-mono text-[10px] uppercase tracking-wider', open ? 'text-faint' : 'text-signal')}>
-            {open ? 'open' : 'solved'}
+            {open ? 'open' : 'closed'}
           </span>
           <span className="font-mono text-[10px] uppercase tracking-wider text-faint">{contest.invariantCount} invariant</span>
         </div>

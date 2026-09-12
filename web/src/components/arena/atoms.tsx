@@ -7,7 +7,7 @@ export function StatusTag({ open }: { open: boolean }) {
   return open ? (
     <span className="font-mono text-[10px] uppercase tracking-wider text-faint">open</span>
   ) : (
-    <span className="font-mono text-[10px] uppercase tracking-wider text-signal">solved</span>
+    <span className="font-mono text-[10px] uppercase tracking-wider text-signal">closed</span>
   )
 }
 

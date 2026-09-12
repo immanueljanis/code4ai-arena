@@ -6,7 +6,7 @@ import { SiteNav } from '../site/SiteNav'
 import { SiteFooter } from '../site/SiteFooter'
 import { PageTransition } from '../site/PageTransition'
 import { createArenaClient } from '../../lib/arena/client'
-import { SETTLEMENT_SYMBOL, formatUsdc, isSolved } from '../../lib/arena/format'
+import { SETTLEMENT_SYMBOL, formatUsdc, isClosed } from '../../lib/arena/format'
 import type { ContestDetail } from '../../lib/arena/types'
 
 function Stat({ label, value, tone }: { label: string; value: React.ReactNode; tone?: 'signal' }) {
@@ -51,7 +51,7 @@ export function BountyDetailPage({ bountyKey }: { bountyKey: string }) {
     )
   }
 
-  const solved = isSolved(bounty.poolRemaining)
+  const closed = isClosed(bounty.poolRemaining)
 
   return (
     <main className="min-h-screen bg-bg">
@@ -73,9 +73,9 @@ export function BountyDetailPage({ bountyKey }: { bountyKey: string }) {
               <span className="font-mono text-sm text-muted">
                 target <span className="text-ink">{bounty.key}</span>
               </span>
-              {solved && (
+              {closed && (
                 <span className="inline-flex items-center gap-1 font-mono text-xs text-signal">
-                  <CheckCircle2 className="size-3.5" /> solved
+                  <CheckCircle2 className="size-3.5" /> closed
                 </span>
               )}
             </div>
@@ -138,10 +138,10 @@ export function BountyDetailPage({ bountyKey }: { bountyKey: string }) {
               <div className="mt-5">
                 <Stat label="stake" value={formatUsdc(bounty.stakeAmount)} />
                 <Stat label="invariants" value={bounty.invariantCount} />
-                <Stat label="status" value={solved ? 'solved' : 'open'} tone={solved ? 'signal' : undefined} />
+                <Stat label="status" value={closed ? 'closed' : 'open'} tone={closed ? 'signal' : undefined} />
               </div>
 
-              {solved ? (
+              {closed ? (
                 <div className="mt-6 border border-line bg-bg/40 p-3 text-center font-mono text-xs text-muted">
                   pool exhausted
                 </div>

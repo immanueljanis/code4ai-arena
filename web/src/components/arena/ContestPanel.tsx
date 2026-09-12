@@ -44,7 +44,7 @@ export function ContestPanel({
         </div>
         {!open && (
           <span className="flex items-center gap-1.5 bg-signal/10 px-2.5 py-1 font-mono text-xs text-signal ring-1 ring-signal/30">
-            <CheckCircle2 className="size-3.5" /> solved
+            <CheckCircle2 className="size-3.5" /> closed
           </span>
         )}
       </div>
