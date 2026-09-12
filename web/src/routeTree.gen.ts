@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ArenaRouteImport } from './routes/arena'
 import { Route as ChallengesRouteImport } from './routes/challenges'
 import { Route as PartnersRouteImport } from './routes/partners'
+import { Route as PitchRouteImport } from './routes/pitch'
 import { Route as ReplaysRouteImport } from './routes/replays'
 import { Route as BountiesIndexRouteImport } from './routes/bounties.index'
 import { Route as BountiesKeyRouteImport } from './routes/bounties.$key'
@@ -37,6 +38,11 @@ const PartnersRoute = PartnersRouteImport.update({
   path: '/partners',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PitchRoute = PitchRouteImport.update({
+  id: '/pitch',
+  path: '/pitch',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReplaysRoute = ReplaysRouteImport.update({
   id: '/replays',
   path: '/replays',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/arena': typeof ArenaRoute
   '/challenges': typeof ChallengesRoute
   '/partners': typeof PartnersRoute
+  '/pitch': typeof PitchRoute
   '/replays': typeof ReplaysRoute
   '/bounties/$key': typeof BountiesKeyRoute
   '/bounties/': typeof BountiesIndexRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/arena': typeof ArenaRoute
   '/challenges': typeof ChallengesRoute
   '/partners': typeof PartnersRoute
+  '/pitch': typeof PitchRoute
   '/replays': typeof ReplaysRoute
   '/bounties/$key': typeof BountiesKeyRoute
   '/bounties': typeof BountiesIndexRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/arena': typeof ArenaRoute
   '/challenges': typeof ChallengesRoute
   '/partners': typeof PartnersRoute
+  '/pitch': typeof PitchRoute
   '/replays': typeof ReplaysRoute
   '/bounties/$key': typeof BountiesKeyRoute
   '/bounties/': typeof BountiesIndexRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/arena'
     | '/challenges'
     | '/partners'
+    | '/pitch'
     | '/replays'
     | '/bounties/$key'
     | '/bounties/'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/arena'
     | '/challenges'
     | '/partners'
+    | '/pitch'
     | '/replays'
     | '/bounties/$key'
     | '/bounties'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/arena'
     | '/challenges'
     | '/partners'
+    | '/pitch'
     | '/replays'
     | '/bounties/$key'
     | '/bounties/'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   ArenaRoute: typeof ArenaRoute
   ChallengesRoute: typeof ChallengesRoute
   PartnersRoute: typeof PartnersRoute
+  PitchRoute: typeof PitchRoute
   ReplaysRoute: typeof ReplaysRoute
   BountiesKeyRoute: typeof BountiesKeyRoute
   BountiesIndexRoute: typeof BountiesIndexRoute
@@ -151,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PartnersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pitch': {
+      id: '/pitch'
+      path: '/pitch'
+      fullPath: '/pitch'
+      preLoaderRoute: typeof PitchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/replays': {
       id: '/replays'
       path: '/replays'
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   ArenaRoute: ArenaRoute,
   ChallengesRoute: ChallengesRoute,
   PartnersRoute: PartnersRoute,
+  PitchRoute: PitchRoute,
   ReplaysRoute: ReplaysRoute,
   BountiesKeyRoute: BountiesKeyRoute,
   BountiesIndexRoute: BountiesIndexRoute,
