@@ -100,6 +100,7 @@ function stakeTransferDeps(agentKey: `0x${string}`): SubmitDeps {
     provision: async () => ({ agentId: "rehearsal", address: "0x0", accountId: "0.0.0" }),
     fundAgent: ensureAgentUsdc,
     isSettled: isAttemptSettled,
+    claimed: async () => false,
     guards: realSpendGuards,
   } as SubmitDeps;
 }

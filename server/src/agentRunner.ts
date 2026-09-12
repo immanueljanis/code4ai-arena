@@ -16,7 +16,7 @@ import {
   verifyStakeAuthorization,
   type X402Authorization,
 } from "./x402.ts";
-import { payout, slash, invalidatePool, isAttemptSettled } from "./arena.ts";
+import { payout, slash, invalidatePool, isAttemptSettled, isClaimed } from "./arena.ts";
 import { ensureAgentUsdc } from "./fund.ts";
 import { provisionAgent } from "./provision.ts";
 import { writeReputationFeedback } from "./erc8004.ts";
@@ -82,6 +82,7 @@ export interface SubmitDeps {
   writeFeedback: typeof writeReputationFeedback;
   fundAgent: typeof ensureAgentUsdc;
   isSettled: typeof isAttemptSettled;
+  claimed: typeof isClaimed;
   guards: SpendGuards;
 }
 
@@ -98,6 +99,7 @@ const realDeps: SubmitDeps = {
   provision: provisionAgent,
   fundAgent: ensureAgentUsdc,
   isSettled: isAttemptSettled,
+  claimed: isClaimed,
   guards: realSpendGuards,
 };
 
@@ -160,6 +162,15 @@ export async function runSubmit(
   // every exploit call, so refuse before any of that when the arena cannot
   // afford it or one agent is consuming the budget.
   await assertCanSpend(agent.id, deps.guards);
+
+  // An invariant pays once. Refuse here rather than deploying a target, running
+  // the exploit and only failing at payout with the gas already spent.
+  if (await deps.claimed(targetKey, meta.invariantId)) {
+    throw Object.assign(
+      new Error(`the invariant on ${targetKey} has already been claimed and cannot pay again`),
+      { status: 409 }
+    );
+  }
 
   // The server holds the agent's encrypted wallet; decrypt it so the exploit
   // calls can be signed by the agent's own address.

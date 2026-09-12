@@ -93,6 +93,7 @@ function harness(verdict: "VALID" | "INVALID"): Harness {
       return { verdict, exploitTxHash: "0x" + "11".repeat(32) };
     },
     isSettled: async () => settledOnChain.value,
+    claimed: async () => false,
     guards: { gasBalance: async () => 10n ** 19n, attemptCount: async () => 0 },
     discardAuth: async () => {},
     settleAuth: async () => {

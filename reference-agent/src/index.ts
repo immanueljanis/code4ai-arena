@@ -89,33 +89,71 @@ function parseCalls(text: string): ExploitCall[] {
   return JSON.parse(text.slice(start, end + 1)) as ExploitCall[]
 }
 
-async function llmPlan(source: string, objective: string, history: HistoricalExploit[], wallet: string): Promise<ExploitCall[]> {
+const SYSTEM_PROMPT =
+  'Return only a JSON array of exploit calls. Every caller and address argument must use the supplied wallet. Do not reveal or infer hidden invariant expressions.'
+
+/** Which API shape the key belongs to. Override with LLM_PROVIDER. */
+function provider(key: string): 'openai' | 'anthropic' {
+  const explicit = process.env.LLM_PROVIDER
+  if (explicit === 'openai' || explicit === 'anthropic') return explicit
+  return key.startsWith('sk-ant-') ? 'anthropic' : 'openai'
+}
+
+type Plan = { calls: ExploitCall[]; planSource: 'model' | 'builtin' }
+
+async function llmPlan(source: string, objective: string, history: HistoricalExploit[], wallet: string): Promise<Plan> {
   const key = process.env.LLM_API_KEY
-  if (!key) return fallbackPlan(target, wallet)
-  const base = process.env.LLM_BASE_URL ?? 'https://api.anthropic.com/v1'
-  const model = process.env.LLM_MODEL ?? 'claude-sonnet-5'
-  const response = await fetch(`${base}/messages`, {
+  if (!key) return { calls: fallbackPlan(target, wallet), planSource: 'builtin' }
+
+  const brief = JSON.stringify({ target, wallet, objective, source, similarHistoricalExploits: history })
+  const kind = provider(key)
+  const base =
+    process.env.LLM_BASE_URL ??
+    (kind === 'anthropic' ? 'https://api.anthropic.com/v1' : 'https://api.openai.com/v1')
+  const model = process.env.LLM_MODEL ?? (kind === 'anthropic' ? 'claude-sonnet-5' : 'gpt-4o')
+
+  const request =
+    kind === 'anthropic'
+      ? {
+          url: `${base}/messages`,
+          headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+          body: {
+            model,
+            max_tokens: 1800,
+            system: SYSTEM_PROMPT,
+            messages: [{ role: 'user', content: brief }],
+          },
+        }
+      : {
+          url: `${base}/chat/completions`,
+          headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
+          body: {
+            model,
+            max_completion_tokens: 1800,
+            messages: [
+              { role: 'system', content: SYSTEM_PROMPT },
+              { role: 'user', content: brief },
+            ],
+          },
+        }
+
+  const response = await fetch(request.url, {
     method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 1800,
-      system: 'Return only a JSON array of exploit calls. Every caller and address argument must use the supplied wallet. Do not reveal or infer hidden invariant expressions.',
-      messages: [{
-        role: 'user',
-        content: JSON.stringify({ target, wallet, objective, source, similarHistoricalExploits: history }),
-      }],
-    }),
+    headers: request.headers,
+    body: JSON.stringify(request.body),
   })
   if (!response.ok) {
     throw new Error(`LLM request failed with ${response.status}: ${await response.text()}`)
   }
-  const body = await response.json() as { content?: Array<{ text?: string }> }
-  return parseCalls(body.content?.map((part) => part.text ?? '').join('') ?? '')
+  const body = (await response.json()) as {
+    content?: Array<{ text?: string }>
+    choices?: Array<{ message?: { content?: string } }>
+  }
+  const text =
+    kind === 'anthropic'
+      ? (body.content ?? []).map((part) => part.text ?? '').join('')
+      : (body.choices?.[0]?.message?.content ?? '')
+  return { calls: parseCalls(text), planSource: 'model' }
 }
 
 function normalizeCalls(calls: ExploitCall[], wallet: string): ExploitCall[] {
@@ -141,7 +179,9 @@ async function main(): Promise<void> {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({ label: `reference-agent-${Date.now().toString(36)}` }),
   })
-  const calls = normalizeCalls(await llmPlan(source, objective, history, agent.walletAddress), agent.walletAddress)
+  const plan = await llmPlan(source, objective, history, agent.walletAddress)
+  const calls = normalizeCalls(plan.calls, agent.walletAddress)
+  console.log(JSON.stringify({ event: 'plan', target, planSource: plan.planSource, historyUsed: history.length, exploitCalls: calls }, null, 2))
   // A stable key means a retried submission resumes the same attempt instead of
   // paying a second stake.
   const idempotencyKey = process.env.IDEMPOTENCY_KEY ?? crypto.randomUUID()
@@ -150,7 +190,7 @@ async function main(): Promise<void> {
     headers: { 'content-type': 'application/json', 'Idempotency-Key': idempotencyKey },
     body: JSON.stringify({ agentId: agent.id, exploitCalls: calls }),
   })
-  console.log(JSON.stringify({ target, idempotencyKey, historyUsed: history.length, exploitCalls: calls, ...result }, null, 2))
+  console.log(JSON.stringify({ target, idempotencyKey, planSource: plan.planSource, historyUsed: history.length, exploitCalls: calls, ...result }, null, 2))
   if (result.verdict !== 'VALID') throw new Error(`reference agent received ${result.verdict}`)
 }
 

@@ -39,4 +39,7 @@ app.route("/", llms); // /llms.txt — machine-readable platform index
 const port = Number(process.env.PORT ?? 8787);
 console.log(`🚀 code4ai core up → http://localhost:${port}/api/health`);
 
-export default { port, fetch: app.fetch };
+// Bun closes idle connections after 10s by default. A cold pool read against
+// the public Hedera relay routinely takes longer than that, and the client sees
+// a dropped socket rather than a response.
+export default { port, idleTimeout: 60, fetch: app.fetch };
