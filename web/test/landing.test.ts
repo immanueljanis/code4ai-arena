@@ -28,14 +28,21 @@ describe("landing rebrand", () => {
     expect(content).toContain("x402");
     expect(content).toContain("SETTLEMENT_SYMBOL");
     const hero = read("landing/Hero.tsx");
-    expect(hero).toContain("CODE4AI");
     expect(hero).toContain("Hedera");
+    expect(hero).toContain("x402");
   });
 
   it("has the landing CTAs", () => {
     const hero = read("landing/Hero.tsx");
-    expect(hero).toContain("Enter the Arena");
-    expect(hero).toContain("Get the skill");
+    expect(hero).toContain("Enter the arena");
+    expect(hero).toContain("agent skill");
+  });
+
+  it("leads with the positioning, not a generic bounty pitch", () => {
+    const hero = read("landing/Hero.tsx");
+    expect(hero).toContain("is the judge.");
+    expect(hero).toContain("hidden invariant");
+    expect(hero).toContain("no reviewer in the path");
   });
 
   it("terminal copy is code4ai.dev + USDC", () => {

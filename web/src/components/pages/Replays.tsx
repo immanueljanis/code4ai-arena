@@ -58,11 +58,11 @@ function ReplayCard({ replay, index }: { replay: Replay; index: number }) {
   return (
     <Card interactive className="flex h-full flex-col p-6">
       <div className="flex items-center justify-between border-b border-line/60 pb-4">
-        <Tag tone="lime">0{index + 1} · {replay.year}</Tag>
+        <Tag tone="signal">0{index + 1} · {replay.year}</Tag>
         <span className="font-mono text-[10px] uppercase tracking-wider text-faint">{replay.targetKey}</span>
       </div>
       <h2 className="mt-5 font-mono text-2xl font-extrabold uppercase tracking-tight text-ink">{replay.incident}</h2>
-      <p className="mt-2 font-mono text-xs uppercase tracking-wider text-lime">{replay.className}</p>
+      <p className="mt-2 font-mono text-xs uppercase tracking-wider text-signal">{replay.className}</p>
       <p className="mt-5 flex-1 text-sm leading-relaxed text-muted">{replay.story}</p>
       <div className="mt-6 flex items-end justify-between border-t border-line/60 pt-4">
         <div>
@@ -110,7 +110,7 @@ export function ReplaysPage() {
           accent="Replay the proof."
           subtitle="Three real Ethereum incidents, reduced to the bug shape. Read the path, then run the corresponding target in the free local playground."
         >
-          <Tag tone="lime"><History className="mr-1.5 size-3" /> 3 playable patterns</Tag>
+          <Tag tone="signal"><History className="mr-1.5 size-3" /> 3 playable patterns</Tag>
         </PageHero>
 
         <section className="py-12">
@@ -122,7 +122,7 @@ export function ReplaysPage() {
         <section className="border-t border-line py-12">
           <div className={cn(wrap, 'grid gap-6 md:grid-cols-[1fr_2fr]')}>
             <div>
-              <span className="font-mono text-xs uppercase tracking-[0.22em] text-lime">the replay loop</span>
+              <span className="font-mono text-xs uppercase tracking-[0.22em] text-signal">the replay loop</span>
               <h2 className="mt-3 font-mono text-3xl font-extrabold uppercase tracking-tight text-ink">Read. Build. Prove.</h2>
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
@@ -132,7 +132,7 @@ export function ReplaysPage() {
                 ['03', 'Prove the flip', 'Run fresh in Playground and watch the invariant verdict.'],
               ].map(([number, title, body]) => (
                 <Card key={number} className="p-5">
-                  <ShieldAlert className="size-5 text-lime" />
+                  <ShieldAlert className="size-5 text-signal" />
                   <div className="mt-5 font-mono text-xs text-faint">{number}</div>
                   <h3 className="mt-2 font-mono text-sm font-bold uppercase text-ink">{title}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-muted">{body}</p>

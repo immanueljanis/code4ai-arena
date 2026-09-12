@@ -13,10 +13,10 @@ import type { Contest } from '../../lib/arena/types'
 const FILTERS = ['all', 'open', 'solved'] as const
 type Filter = (typeof FILTERS)[number]
 
-function StatTile({ value, label, tone }: { value: React.ReactNode; label: string; tone?: 'lime' }) {
+function StatTile({ value, label, tone }: { value: React.ReactNode; label: string; tone?: 'signal' }) {
   return (
     <Card className="px-4 py-4">
-      <div className={cn('font-mono text-2xl font-extrabold', tone === 'lime' ? 'text-lime' : 'text-ink')}>{value}</div>
+      <div className={cn('font-mono text-2xl font-extrabold', tone === 'signal' ? 'text-signal' : 'text-ink')}>{value}</div>
       <div className="mt-1 font-mono text-[10px] uppercase tracking-wider text-faint">{label}</div>
     </Card>
   )
@@ -26,10 +26,10 @@ function BountyCard({ bounty }: { bounty: Contest }) {
   const solved = isSolved(bounty.poolRemaining)
   return (
     <Link to="/bounties/$key" params={{ key: bounty.key }} className="block">
-      <Card interactive tone={solved ? 'lime' : 'line'} className="flex flex-col p-5">
+      <Card interactive tone={solved ? 'signal' : 'line'} className="flex flex-col p-5">
         <div className="flex items-center justify-between border-b border-line/60 pb-3">
           <span className="font-mono text-[11px] text-muted">{bounty.invariantCount} invariant hidden</span>
-          <span className={cn('font-mono text-[10px] uppercase tracking-wider', solved ? 'text-lime' : 'text-faint')}>
+          <span className={cn('font-mono text-[10px] uppercase tracking-wider', solved ? 'text-signal' : 'text-faint')}>
             {solved ? 'solved' : 'open'}
           </span>
         </div>
@@ -37,11 +37,11 @@ function BountyCard({ bounty }: { bounty: Contest }) {
         <p className="mt-0.5 font-mono text-xs text-muted">{bounty.objective}</p>
         <div className="mt-4 flex items-end justify-between">
           <div>
-            <div className="font-mono text-2xl font-extrabold text-lime">{formatUsdc(bounty.poolRemaining)}</div>
+            <div className="font-mono text-2xl font-extrabold text-signal">{formatUsdc(bounty.poolRemaining)}</div>
             <div className="font-mono text-[10px] uppercase tracking-wider text-faint">pool · stake {formatUsdc(bounty.stakeAmount)}</div>
           </div>
           {!solved && (
-            <span className="inline-flex items-center gap-1 font-mono text-xs text-lime">
+            <span className="inline-flex items-center gap-1 font-mono text-xs text-signal">
               view <ArrowUpRight className="size-3.5" />
             </span>
           )}
@@ -89,7 +89,7 @@ export function BountiesPage() {
         >
           <div className="grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
             <StatTile value={contests.length} label="bounties" />
-            <StatTile value={formatUsdc(pool)} label={`${SETTLEMENT_SYMBOL} pool`} tone="lime" />
+            <StatTile value={formatUsdc(pool)} label={`${SETTLEMENT_SYMBOL} pool`} tone="signal" />
             <StatTile value={open} label="open" />
             <StatTile value={contests.length - open} label="solved" />
           </div>
@@ -108,7 +108,7 @@ export function BountiesPage() {
                   onClick={() => setFilter(f)}
                   className={cn(
                     'border px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-colors',
-                    filter === f ? 'border-lime/60 bg-lime/10 text-lime' : 'border-line text-muted hover:text-ink',
+                    filter === f ? 'border-signal/60 bg-signal/10 text-signal' : 'border-line text-muted hover:text-ink',
                   )}
                 >
                   {f}

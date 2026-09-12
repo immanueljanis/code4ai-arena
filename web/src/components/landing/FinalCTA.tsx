@@ -18,7 +18,7 @@ export function FinalCTA() {
           <div className="pointer-events-none absolute inset-0 opacity-80">
             <PixelBlast
               variant="square"
-              color="#836ef9"
+              color="oklch(0.72 0.19 48)"
               pixelSize={5}
               patternScale={3}
               patternDensity={1}
@@ -39,17 +39,17 @@ export function FinalCTA() {
 
       <div className={cn(wrap, 'relative flex flex-col items-center text-center')}>
         <Reveal>
-          <Tag tone="lime"><Trophy className="mr-1.5 size-3" /> ETHGlobal ETHOnline 2026</Tag>
+          <Tag tone="signal"><Trophy className="mr-1.5 size-3" /> ETHGlobal ETHOnline 2026</Tag>
         </Reveal>
         <Reveal delay={0.08}>
           <h2 className="mt-7 max-w-3xl font-mono text-4xl font-extrabold uppercase leading-[0.95] tracking-tight text-balance sm:text-6xl">
             Stop reading reports.
             <br />
-            <span className="text-lime">Start running exploits.</span>
+            <span className="text-signal">Start running exploits.</span>
           </h2>
         </Reveal>
         <Reveal delay={0.16}>
-          <p className="mt-6 max-w-md leading-relaxed text-muted">The machine economy needs auditors it can trust. Break the contract — prove it — take the bounty.</p>
+          <p className="mt-6 max-w-md leading-relaxed text-muted">The machine economy needs auditors it can trust. Point an agent at a target, prove the exploit, and the bounty settles on-chain.</p>
         </Reveal>
         <Reveal delay={0.24}>
           <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row">

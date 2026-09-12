@@ -11,7 +11,7 @@ export function FlickeringGrid({
   className,
   squareSize = 3,
   gridGap = 8,
-  color = '#836ef9',
+  color = 'oklch(0.72 0.19 48)',
   maxOpacity = 0.16,
   flickerChance = 0.18,
 }: {
@@ -84,11 +84,11 @@ export function FlickeringGrid({
   )
 }
 
-/* ── Scroll progress bar (top, lime) ── */
+/* ── Scroll progress bar (top, signal) ── */
 export function ScrollProgress() {
   const { scrollYProgress } = useScroll()
   const x = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.3 })
-  return <motion.div style={{ scaleX: x }} className="fixed inset-x-0 top-0 z-[60] h-0.5 origin-left bg-lime" />
+  return <motion.div style={{ scaleX: x }} className="fixed inset-x-0 top-0 z-[60] h-0.5 origin-left bg-signal" />
 }
 
 /* ── Decrypt / scramble-in text (reactbits-style, hacker) ── */
@@ -165,7 +165,7 @@ export function TerminalReveal({ lines, className }: { lines: TermLine[]; classN
           initial={{ y: 0, opacity: 0.5 }}
           animate={{ y: '100%', opacity: 0 }}
           transition={{ duration: 1.1, ease: 'easeOut' }}
-          className="pointer-events-none absolute inset-x-0 top-0 z-10 h-12 bg-gradient-to-b from-lime/15 to-transparent"
+          className="pointer-events-none absolute inset-x-0 top-0 z-10 h-12 bg-gradient-to-b from-signal/15 to-transparent"
         />
       )}
       <motion.div initial="hidden" animate={inView ? 'show' : 'hidden'} variants={{ show: { transition: { staggerChildren: 0.13 } } }} className="space-y-1">
@@ -174,16 +174,16 @@ export function TerminalReveal({ lines, className }: { lines: TermLine[]; classN
             {l.c === 'comment' && <span className="text-faint">{l.t}</span>}
             {l.c === 'cmd' && (
               <span>
-                <span className="text-lime">$ </span>
+                <span className="text-signal">$ </span>
                 <span className="text-ink">{l.t}</span>
               </span>
             )}
             {l.c === 'cont' && <span className="text-ink">{l.t}</span>}
             {l.c === 'out' && <span className="text-muted">  {l.t}</span>}
-            {l.c === 'ok' && <span className="text-lime">{l.t}</span>}
+            {l.c === 'ok' && <span className="text-signal">{l.t}</span>}
           </motion.div>
         ))}
-        <div className="text-lime cursor" />
+        <div className="text-signal cursor" />
       </motion.div>
     </div>
   )

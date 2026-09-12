@@ -9,7 +9,7 @@ import { CHALLENGES, type Challenge } from '../../lib/site/catalog'
 import { SETTLEMENT_SYMBOL, formatUsdc } from '../../lib/arena/format'
 
 function StatusBadge({ challenge }: { challenge: Challenge }) {
-  if (challenge.status === 'live') return <Tag tone="lime">live · {challenge.days}d left</Tag>
+  if (challenge.status === 'live') return <Tag tone="signal">live · {challenge.days}d left</Tag>
   if (challenge.status === 'upcoming') return <Tag tone="line">starts in {challenge.days}d</Tag>
   return <Tag tone="line">ended</Tag>
 }
@@ -24,7 +24,7 @@ function Meta({ icon: Icon, children }: { icon: typeof Clock; children: React.Re
 
 function Featured({ challenge }: { challenge: Challenge }) {
   return (
-    <Card tone="lime" className="overflow-hidden p-7">
+    <Card tone="signal" className="overflow-hidden p-7">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="font-mono text-[11px] uppercase tracking-widest text-faint">featured challenge</span>
         <StatusBadge challenge={challenge} />
@@ -33,7 +33,7 @@ function Featured({ challenge }: { challenge: Challenge }) {
       <p className="mt-3 max-w-xl leading-relaxed text-muted">{challenge.blurb}</p>
       <div className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3">
         <div>
-          <div className="font-mono text-3xl font-extrabold text-lime">{formatUsdc(challenge.prizePool * 1_000_000)}</div>
+          <div className="font-mono text-3xl font-extrabold text-signal">{formatUsdc(challenge.prizePool * 1_000_000)}</div>
           <div className="font-mono text-[10px] uppercase tracking-wider text-faint">{SETTLEMENT_SYMBOL} prize pool</div>
         </div>
         <Meta icon={Users}>{challenge.participants} agents</Meta>
@@ -54,7 +54,7 @@ function Featured({ challenge }: { challenge: Challenge }) {
 function ChallengeCard({ challenge }: { challenge: Challenge }) {
   const ended = challenge.status === 'ended'
   return (
-    <Card interactive tone={challenge.status === 'live' ? 'lime' : 'line'} className="flex flex-col p-5">
+    <Card interactive tone={challenge.status === 'live' ? 'signal' : 'line'} className="flex flex-col p-5">
       <div className="flex items-center justify-between">
         <Tag tone="line">{challenge.theme}</Tag>
         <StatusBadge challenge={challenge} />
@@ -63,7 +63,7 @@ function ChallengeCard({ challenge }: { challenge: Challenge }) {
       <p className="mt-1.5 flex-1 text-sm leading-relaxed text-muted">{challenge.blurb}</p>
       <div className="mt-4 flex items-end justify-between">
         <div>
-          <div className="font-mono text-xl font-extrabold text-lime">{formatUsdc(challenge.prizePool * 1_000_000)}</div>
+          <div className="font-mono text-xl font-extrabold text-signal">{formatUsdc(challenge.prizePool * 1_000_000)}</div>
           <div className="font-mono text-[10px] uppercase tracking-wider text-faint">{SETTLEMENT_SYMBOL} pool · {challenge.participants} agents</div>
         </div>
         {ended ? (
@@ -72,7 +72,7 @@ function ChallengeCard({ challenge }: { challenge: Challenge }) {
           <Link
             to="/arena"
             search={{ target: challenge.targetKey }}
-            className="inline-flex items-center gap-1 font-mono text-xs text-lime"
+            className="inline-flex items-center gap-1 font-mono text-xs text-signal"
           >
             enter <ArrowRight className="size-3.5" />
           </Link>
@@ -103,7 +103,7 @@ export function ChallengesPage() {
         accent="Climb the board."
         subtitle={`CODE4AI-run tournaments. Time-boxed competitions with ${SETTLEMENT_SYMBOL} prize pools on Hedera — pick a theme, break the targets faster than the swarm, and top the leaderboard before the clock runs out.`}
       >
-        <Tag tone="lime">
+        <Tag tone="signal">
           <Trophy className="mr-1.5 size-3" /> hosted by CODE4AI
         </Tag>
         <span className="ml-2 inline-flex"><TestTokenBadge /></span>
@@ -125,7 +125,7 @@ export function ChallengesPage() {
               {PLAY_STEPS.map((s, i) => (
                 <Card key={s.t} className="p-6">
                   <div className="flex items-center justify-between">
-                    <s.icon className="size-6 text-lime" />
+                    <s.icon className="size-6 text-signal" />
                     <span className="font-mono text-2xl font-extrabold text-line">0{i + 1}</span>
                   </div>
                   <h3 className="mt-5 font-mono text-base font-bold uppercase tracking-wide text-ink">{s.t}</h3>

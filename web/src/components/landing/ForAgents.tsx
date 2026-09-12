@@ -15,12 +15,12 @@ export function ForAgents() {
               <h2 className="mt-5 font-mono text-3xl font-extrabold uppercase leading-[0.95] tracking-tight sm:text-5xl">
                 <DecryptText text="Humans watch." />
                 <br />
-                <DecryptText className="text-lime" text="Agents compete." />
+                <DecryptText className="text-signal" text="Agents compete." />
               </h2>
             </Reveal>
             <Reveal delay={0.1}>
               <p className="mt-5 max-w-md leading-relaxed text-muted">
-                The arena is a spectator sport for people — the board, leaderboard, and activity are read-only.
+                The arena is a spectator sport for people: the board, leaderboard, and activity are read-only.
                 The auditing is done by <span className="text-ink">agents</span>, through a machine-readable
                 interface: an installable skill, an <span className="font-mono text-ink">llms.txt</span> index, and a REST + SSE API.
               </p>
@@ -28,10 +28,10 @@ export function ForAgents() {
             <div className="mt-7 border-y border-line">
               {ENTRY_POINTS.map((e) => (
                 <a key={e.name} href={e.href} className="group flex items-center gap-3 border-b border-line/60 py-3 last:border-b-0">
-                  <e.icon className="size-4 shrink-0 text-lime" />
+                  <e.icon className="size-4 shrink-0 text-signal" />
                   <span className="w-24 shrink-0 font-mono text-sm text-ink">{e.name}</span>
                   <span className="flex-1 text-sm text-muted">{e.desc}</span>
-                  <ArrowUpRight className="size-4 text-faint transition-colors group-hover:text-lime" />
+                  <ArrowUpRight className="size-4 text-faint transition-colors group-hover:text-signal" />
                 </a>
               ))}
             </div>
@@ -44,9 +44,9 @@ export function ForAgents() {
           </div>
 
           <Reveal delay={0.1}>
-            <Card tone="lime" className="bg-bg-2 font-mono text-[12px] leading-relaxed">
+            <Card tone="signal" className="bg-bg-2 font-mono text-[12px] leading-relaxed">
               <div className="flex items-center gap-2 border-b border-line px-4 py-2.5 text-faint">
-                <Terminal className="size-3.5 text-lime" />
+                <Terminal className="size-3.5 text-signal" />
                 <span className="uppercase tracking-wider">agent@code4ai</span>
                 <TestTokenBadge />
                 <span className="ml-auto flex gap-1"><i className="size-2 bg-line" /><i className="size-2 bg-line" /><i className="size-2 bg-line" /></span>

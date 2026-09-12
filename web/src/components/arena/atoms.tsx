@@ -7,24 +7,24 @@ export function StatusTag({ open }: { open: boolean }) {
   return open ? (
     <span className="font-mono text-[10px] uppercase tracking-wider text-faint">open</span>
   ) : (
-    <span className="font-mono text-[10px] uppercase tracking-wider text-lime">solved</span>
+    <span className="font-mono text-[10px] uppercase tracking-wider text-signal">solved</span>
   )
 }
 
 export function VerdictLabel({ verdict }: { verdict: Verdict }) {
   return verdict === 'VALID' ? (
-    <span className="font-mono text-xs font-bold tracking-widest text-lime">VALID</span>
+    <span className="font-mono text-xs font-bold tracking-widest text-signal">VALID</span>
   ) : (
     <span className="font-mono text-xs font-bold tracking-widest text-slash">INVALID</span>
   )
 }
 
 /* small label/value stat used in the top strip */
-export function StatTile({ label, value, tone }: { label: string; value: ReactNode; tone?: 'lime' | 'slash' }) {
+export function StatTile({ label, value, tone }: { label: string; value: ReactNode; tone?: 'signal' | 'slash' }) {
   return (
     <span className="flex items-baseline gap-1.5 font-mono text-[11px]">
       <span className="text-faint">{label}</span>
-      <span className={cn('text-ink', tone === 'lime' && 'text-lime', tone === 'slash' && 'text-slash')}>{value}</span>
+      <span className={cn('text-ink', tone === 'signal' && 'text-signal', tone === 'slash' && 'text-slash')}>{value}</span>
     </span>
   )
 }
@@ -33,7 +33,7 @@ export function StatTile({ label, value, tone }: { label: string; value: ReactNo
 export function PanelHeading({ icon: Icon, children }: { icon: ComponentType<{ className?: string }>; children: ReactNode }) {
   return (
     <h2 className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.18em] text-muted">
-      <Icon className="size-3.5 text-lime" />
+      <Icon className="size-3.5 text-signal" />
       <span>{children}</span>
     </h2>
   )

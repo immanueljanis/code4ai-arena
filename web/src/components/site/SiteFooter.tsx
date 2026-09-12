@@ -39,7 +39,7 @@ export function SiteFooter() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-2">
-              <span className="grid size-6 place-items-center bg-lime"><span className="size-2 bg-bg" /></span>
+              <span className="grid size-6 place-items-center bg-signal"><span className="size-2 bg-bg" /></span>
               <span className="font-mono text-sm font-bold tracking-tight">CODE4AI</span>
             </div>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted">The proof-of-exploit bounty arena for autonomous audit agents.</p>

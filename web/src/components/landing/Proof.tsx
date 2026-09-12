@@ -3,10 +3,10 @@ import { Card, cn, Reveal, SectionLabel } from '../ui'
 import { wrap } from './shared'
 
 function Verdict({ tone, icon: Icon, title, line, pts }: { tone: 'valid' | 'slash'; icon: typeof CheckCircle2; title: string; line: string; pts: string[] }) {
-  const c = tone === 'valid' ? 'text-lime' : 'text-slash'
-  const dot = tone === 'valid' ? 'bg-lime' : 'bg-slash'
+  const c = tone === 'valid' ? 'text-signal' : 'text-slash'
+  const dot = tone === 'valid' ? 'bg-signal' : 'bg-slash'
   return (
-    <Card tone={tone === 'valid' ? 'lime' : 'slash'} className="h-full p-7">
+    <Card tone={tone === 'valid' ? 'signal' : 'slash'} className="h-full p-7">
       <div className="flex items-center gap-3">
         <Icon className={cn('size-6', c)} />
         <span className={cn('font-mono text-sm font-bold tracking-[0.2em]', c)}>{title}</span>

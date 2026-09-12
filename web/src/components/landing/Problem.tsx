@@ -47,19 +47,19 @@ export function Problem() {
             <SectionLabel>the break</SectionLabel>
             <Reveal>
               <h2 className="mt-5 font-mono text-3xl font-bold uppercase leading-[1.05] tracking-tight text-balance sm:text-4xl">
-                AI made auditing free — and broke the platforms that pay for it.
+                AI made auditing free, and broke the platforms that pay for it.
               </h2>
             </Reveal>
             <Reveal delay={0.1}>
               <p className="mt-5 max-w-md leading-relaxed text-muted">
                 Anyone can point an LLM at a contract and mass-produce plausible, fabricated reports. Incumbents
-                trust a <span className="text-ink">human</span> to read each one — a model that doesn’t scale
+                trust a <span className="text-ink">human</span> to read each one, a model that does not scale
                 against machines and has no cost for lying.
               </p>
             </Reveal>
 
             <div className="mt-8 flex items-center gap-3 font-mono text-xs">
-              <span className="text-lime">{pad(active + 1)}</span>
+              <span className="text-signal">{pad(active + 1)}</span>
               <span className="text-faint">/ {pad(INCIDENTS.length)}</span>
               <span className="h-px flex-1 bg-line" />
               <span className="uppercase tracking-wider text-muted">{INCIDENTS[active]!.src.split('·')[0].trim()}</span>
@@ -76,7 +76,7 @@ export function Problem() {
           <div className="break-list relative grid grid-cols-[24px_minmax(0,1fr)] gap-x-3 gap-y-3">
             <span className="pointer-events-none absolute left-3 top-6 bottom-6 w-px -translate-x-1/2 bg-line" />
             <span
-              className="break-fill pointer-events-none absolute left-3 top-6 w-px origin-top -translate-x-1/2 bg-lime"
+              className="break-fill pointer-events-none absolute left-3 top-6 w-px origin-top -translate-x-1/2 bg-signal"
               style={{ height: 'calc(100% - 48px)', transform: 'scaleY(0)' }}
             />
 
@@ -87,14 +87,14 @@ export function Problem() {
                     className={cn(
                       'absolute top-7 size-3 -translate-y-1/2 border transition-all duration-300',
                       i <= active
-                        ? 'border-lime bg-lime shadow-[0_0_10px_rgba(180,230,50,0.7)]'
+                        ? 'border-signal bg-signal shadow-[0_0_10px_rgba(180,230,50,0.7)]'
                         : 'border-line bg-bg',
                     )}
                   />
                 </div>
 
                 <a href={incident.href} target="_blank" rel="noreferrer" className="break-card group block">
-                  <Card tone={i === active ? 'lime' : 'line'} className={cn('p-6 transition-colors', i === active ? 'bg-surface' : 'group-hover:bg-surface/70')}>
+                  <Card tone={i === active ? 'signal' : 'line'} className={cn('p-6 transition-colors', i === active ? 'bg-surface' : 'group-hover:bg-surface/70')}>
                     <div className="flex items-start gap-4">
                       <XCircle className="mt-0.5 size-5 shrink-0 text-slash" />
                       <div>

@@ -10,7 +10,7 @@ function PartnerCard({ partner }: { partner: Partner }) {
   return (
     <Card interactive className="flex flex-col p-5">
       <div className="flex items-center gap-3">
-        <span className="grid size-9 shrink-0 place-items-center bg-lime/10 font-mono text-sm font-bold text-lime ring-1 ring-lime/20">
+        <span className="grid size-9 shrink-0 place-items-center bg-signal/10 font-mono text-sm font-bold text-signal ring-1 ring-signal/20">
           {partner.name.charAt(0)}
         </span>
         <div className="min-w-0">
@@ -56,7 +56,7 @@ export function PartnersPage() {
           <PartnerSection label="sponsors" title="Protocols on the line" partners={PROTOCOL_PARTNERS} />
 
           {/* become a partner */}
-          <Card tone="lime" className="flex flex-col items-start gap-5 p-8 sm:flex-row sm:items-center sm:justify-between">
+          <Card tone="signal" className="flex flex-col items-start gap-5 p-8 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="font-mono text-2xl font-extrabold uppercase tracking-tight text-ink">Put your contract in the arena.</h2>
               <p className="mt-2 max-w-xl leading-relaxed text-muted">

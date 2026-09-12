@@ -30,7 +30,7 @@ function IconLink({ href, label, children }: { href: string; label: string; chil
 
 /** Nav item — opens a new tab from the landing page (newTab), or routes client-side inside the app. */
 function NavItem({ href, label, active, newTab }: { href: string; label: string; active?: string; newTab: boolean }) {
-  const cls = cn('font-mono text-[13px] transition-colors hover:text-ink', active === href ? 'text-lime' : 'text-muted')
+  const cls = cn('font-mono text-[13px] transition-colors hover:text-ink', active === href ? 'text-signal' : 'text-muted')
   return newTab ? (
     <a href={href} target="_blank" rel="noopener noreferrer" className={cls}>
       {label}
@@ -58,7 +58,7 @@ export function SiteNav({ active, newTab = false }: { active?: string; newTab?: 
         <span className="pointer-events-none absolute -bottom-1 right-6 h-2 w-px bg-line" />
 
         <a href="/" className="flex items-center gap-2">
-          <span className="grid size-6 place-items-center bg-lime">
+          <span className="grid size-6 place-items-center bg-signal">
             <span className="size-2 bg-bg" />
           </span>
           <span className="font-mono text-sm font-bold tracking-tight">CODE4AI</span>

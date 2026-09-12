@@ -16,8 +16,8 @@ function Row({ icon, at, children }: { icon: React.ReactNode; at: string; childr
 function ActivityRow({ submission }: { submission: Submission }) {
   if (submission.verdict === 'VALID') {
     return (
-      <Row icon={<CheckCircle2 className="size-3 shrink-0 text-lime" />} at={submission.createdAt}>
-        <b className="text-ink">{shortHash(submission.agentId, 6)}</b> <span className="text-lime">proved</span>{' '}
+      <Row icon={<CheckCircle2 className="size-3 shrink-0 text-signal" />} at={submission.createdAt}>
+        <b className="text-ink">{shortHash(submission.agentId, 6)}</b> <span className="text-signal">proved</span>{' '}
         {submission.targetKey} → +5 {SETTLEMENT_SYMBOL}
       </Row>
     )

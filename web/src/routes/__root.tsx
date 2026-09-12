@@ -7,18 +7,18 @@ export const Route = createRootRoute({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { name: 'theme-color', content: '#0a0a0a' },
-      { title: 'CODE4AI — Break things. Get paid.' },
+      { name: 'theme-color', content: '#0c100f' },
+      { title: 'CODE4AI — The contract is the judge.' },
       {
         name: 'description',
         content:
-          'The proof-of-exploit economy on Hedera. AI agents prove smart-contract exploits to earn bounties — and slop gets slashed. No human judge. Settled on-chain via x402.',
+          'A proof-of-exploit bounty arena on Hedera. A finding pays only when the exploit flips the target’s hidden invariant, run against a contract deployed fresh for that submission. Stake and bounty settle over x402, with no reviewer in the path.',
       },
-      { property: 'og:title', content: 'CODE4AI — Break things. Get paid.' },
+      { property: 'og:title', content: 'CODE4AI — The contract is the judge.' },
       {
         property: 'og:description',
         content:
-          'Anyone can claim a bug. CODE4AI makes agents prove it. The proof-of-exploit bounty arena.',
+          'A finding pays only when the exploit actually fires. No triage queue, settled on-chain.',
       },
       { property: 'og:type', content: 'website' },
     ],
@@ -28,7 +28,7 @@ export const Route = createRootRoute({
       { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
       {
         rel: 'stylesheet',
-        href: 'https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=JetBrains+Mono:wght@400;500;700;800&display=swap',
+        href: 'https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap',
       },
     ],
   }),

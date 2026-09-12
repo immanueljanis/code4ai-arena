@@ -3,10 +3,10 @@ import { useEffect, useRef } from 'react'
 /* shared container width */
 export const wrap = 'mx-auto w-full max-w-6xl px-6'
 
-/* the lime mark */
+/* the signal mark */
 export function Logo() {
   return (
-    <span className="grid size-6 place-items-center bg-lime">
+    <span className="grid size-6 place-items-center bg-signal">
       <span className="size-2 bg-bg" />
     </span>
   )

@@ -9,11 +9,11 @@ import { createArenaClient } from '../../lib/arena/client'
 import { SETTLEMENT_SYMBOL, formatUsdc, isSolved } from '../../lib/arena/format'
 import type { ContestDetail } from '../../lib/arena/types'
 
-function Stat({ label, value, tone }: { label: string; value: React.ReactNode; tone?: 'lime' }) {
+function Stat({ label, value, tone }: { label: string; value: React.ReactNode; tone?: 'signal' }) {
   return (
     <div className="flex items-center justify-between border-b border-line/60 py-3 last:border-b-0">
       <span className="font-mono text-xs uppercase tracking-wider text-faint">{label}</span>
-      <span className={cn('font-mono text-sm', tone === 'lime' ? 'text-lime' : 'text-ink')}>{value}</span>
+      <span className={cn('font-mono text-sm', tone === 'signal' ? 'text-signal' : 'text-ink')}>{value}</span>
     </div>
   )
 }
@@ -41,7 +41,7 @@ export function BountyDetailPage({ bountyKey }: { bountyKey: string }) {
         <div className="grid min-h-[60vh] place-items-center px-6 text-center">
           <div>
             <p className="font-mono text-sm text-muted">bounty not found</p>
-            <Link to="/bounties" className="mt-4 inline-flex items-center gap-1.5 font-mono text-sm text-lime">
+            <Link to="/bounties" className="mt-4 inline-flex items-center gap-1.5 font-mono text-sm text-signal">
               <ArrowLeft className="size-4" /> back to bounties
             </Link>
           </div>
@@ -67,14 +67,14 @@ export function BountyDetailPage({ bountyKey }: { bountyKey: string }) {
             </Link>
 
             <div className="mt-6 flex items-center gap-3">
-              <span className="grid size-7 place-items-center bg-lime/10 font-mono text-xs font-bold text-lime ring-1 ring-lime/20">
+              <span className="grid size-7 place-items-center bg-signal/10 font-mono text-xs font-bold text-signal ring-1 ring-signal/20">
                 {bounty.key.charAt(0)}
               </span>
               <span className="font-mono text-sm text-muted">
                 target <span className="text-ink">{bounty.key}</span>
               </span>
               {solved && (
-                <span className="inline-flex items-center gap-1 font-mono text-xs text-lime">
+                <span className="inline-flex items-center gap-1 font-mono text-xs text-signal">
                   <CheckCircle2 className="size-3.5" /> solved
                 </span>
               )}
@@ -90,7 +90,7 @@ export function BountyDetailPage({ bountyKey }: { bountyKey: string }) {
             <div className="flex flex-col gap-5">
               <Card className="p-6">
                 <h2 className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.18em] text-muted">
-                  <ShieldAlert className="size-3.5 text-lime" /> invariant to break
+                  <ShieldAlert className="size-3.5 text-signal" /> invariant to break
                 </h2>
                 <p className="mt-4 text-lg font-medium leading-snug text-ink">
                   {bounty.invariantCount} hidden invariant{bounty.invariantCount === 1 ? '' : 's'}
@@ -103,7 +103,7 @@ export function BountyDetailPage({ bountyKey }: { bountyKey: string }) {
 
               <Card className="p-6">
                 <h2 className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.18em] text-muted">
-                  <ShieldCheck className="size-3.5 text-lime" /> how it pays
+                  <ShieldCheck className="size-3.5 text-signal" /> how it pays
                 </h2>
                 <ul className="mt-4 space-y-2.5">
                   {[
@@ -112,7 +112,7 @@ export function BountyDetailPage({ bountyKey }: { bountyKey: string }) {
                     'Invariant breaks → bounty + stake returned, settled via x402',
                   ].map((t) => (
                     <li key={t} className="flex items-center gap-3 font-mono text-[13px] text-muted">
-                      <span className="size-1.5 bg-lime" /> {t}
+                      <span className="size-1.5 bg-signal" /> {t}
                     </li>
                   ))}
                 </ul>
@@ -120,7 +120,7 @@ export function BountyDetailPage({ bountyKey }: { bountyKey: string }) {
 
               <Card className="p-6">
                 <h2 className="flex items-center gap-2 font-mono text-xs uppercase tracking-[0.18em] text-muted">
-                  <ShieldCheck className="size-3.5 text-lime" /> source
+                  <ShieldCheck className="size-3.5 text-signal" /> source
                 </h2>
                 <pre className="mt-4 max-h-96 overflow-auto border border-line bg-bg-2 p-4 font-mono text-[11px] leading-relaxed text-muted">
                   <code>{bounty.source}</code>
@@ -129,16 +129,16 @@ export function BountyDetailPage({ bountyKey }: { bountyKey: string }) {
             </div>
 
             {/* reward / action */}
-            <Card tone="lime" className="flex h-fit flex-col p-6">
-              <Coins className="size-5 text-lime" />
-              <div className="mt-3 font-mono text-4xl font-extrabold text-lime">{formatUsdc(bounty.poolRemaining)}</div>
+            <Card tone="signal" className="flex h-fit flex-col p-6">
+              <Coins className="size-5 text-signal" />
+              <div className="mt-3 font-mono text-4xl font-extrabold text-signal">{formatUsdc(bounty.poolRemaining)}</div>
               <div className="font-mono text-[10px] uppercase tracking-wider text-faint">pool remaining</div>
               <div className="mt-2"><TestTokenBadge /></div>
 
               <div className="mt-5">
                 <Stat label="stake" value={formatUsdc(bounty.stakeAmount)} />
                 <Stat label="invariants" value={bounty.invariantCount} />
-                <Stat label="status" value={solved ? 'solved' : 'open'} tone={solved ? 'lime' : undefined} />
+                <Stat label="status" value={solved ? 'solved' : 'open'} tone={solved ? 'signal' : undefined} />
               </div>
 
               {solved ? (

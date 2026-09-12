@@ -23,7 +23,7 @@ export function ArenaTopBar({
           </a>
           <span className="h-5 w-px bg-line" />
           <a href="/" className="flex items-center gap-2">
-            <span className="grid size-5 place-items-center bg-lime">
+            <span className="grid size-5 place-items-center bg-signal">
               <span className="size-[7px] bg-bg" />
             </span>
             <span className="font-mono text-sm font-bold tracking-tight">CODE4AI</span>
@@ -35,7 +35,7 @@ export function ArenaTopBar({
 
         <div className="hidden items-center gap-5 lg:flex">
           <StatTile label="submissions" value={submissions.length} />
-          <StatTile label="valid" value={valid} tone="lime" />
+          <StatTile label="valid" value={valid} tone="signal" />
           <StatTile label="invalid" value={invalid} tone="slash" />
           <StatTile label="pending" value={open} />
         </div>

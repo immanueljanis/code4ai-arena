@@ -17,11 +17,11 @@ function AgentRow({ rank, agent }: { rank: number; agent: RankedAgent }) {
         <div>
           <div className="font-mono text-sm text-ink">{agent.id}</div>
           <div className="font-mono text-[10px] text-faint">
-            <span className="text-lime">{agent.valid}✓</span> · <span className="text-slash">{agent.invalid}✗</span>
+            <span className="text-signal">{agent.valid}✓</span> · <span className="text-slash">{agent.invalid}✗</span>
           </div>
         </div>
       </div>
-      <span className={cn('font-mono text-xs', agent.valid > 0 ? 'text-lime' : 'text-faint')}>
+      <span className={cn('font-mono text-xs', agent.valid > 0 ? 'text-signal' : 'text-faint')}>
         {agent.valid > 0 ? `+${agent.valid}` : '0'}
       </span>
     </div>

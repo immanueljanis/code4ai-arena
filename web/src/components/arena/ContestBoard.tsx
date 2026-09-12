@@ -8,9 +8,9 @@ function ContestCard({ contest, active, onSelect }: { contest: Contest; active: 
   const open = isOpen(contest.poolRemaining)
   return (
     <button type="button" onClick={() => onSelect(contest.key)} className="block w-full text-left">
-      <Card interactive tone={active ? 'lime' : 'line'} className={cn('p-4', active && 'bg-surface')}>
+      <Card interactive tone={active ? 'signal' : 'line'} className={cn('p-4', active && 'bg-surface')}>
         <div className="flex items-center justify-between">
-          <span className={cn('font-mono text-[10px] uppercase tracking-wider', open ? 'text-faint' : 'text-lime')}>
+          <span className={cn('font-mono text-[10px] uppercase tracking-wider', open ? 'text-faint' : 'text-signal')}>
             {open ? 'open' : 'solved'}
           </span>
           <span className="font-mono text-[10px] uppercase tracking-wider text-faint">{contest.invariantCount} invariant</span>
@@ -18,7 +18,7 @@ function ContestCard({ contest, active, onSelect }: { contest: Contest; active: 
         <div className="mt-2.5 font-mono text-sm font-bold tracking-tight text-ink">{contest.key}</div>
         <div className="mt-0.5 font-mono text-xs text-muted">{contest.objective}</div>
         <div className="mt-3 flex items-center justify-between font-mono text-xs">
-          <span className="text-lime">{formatUsdc(contest.poolRemaining)} pool</span>
+          <span className="text-signal">{formatUsdc(contest.poolRemaining)} pool</span>
           <span className="text-faint">stake {formatUsdc(contest.stakeAmount)}</span>
         </div>
       </Card>

@@ -11,10 +11,10 @@ export function cn(...parts: Array<string | false | null | undefined>) {
 export const wrap = 'mx-auto w-full max-w-6xl px-6'
 
 /* ── Corner brackets (Arbital-style; sharp, no rounding) — shared by Card + Button ── */
-export function Corners({ tone = 'line', size = 'size-2.5', hover = false }: { tone?: 'line' | 'lime' | 'slash'; size?: string; hover?: boolean }) {
-  const bc = tone === 'lime' ? 'border-lime' : tone === 'slash' ? 'border-slash' : 'border-faint'
-  // on an interactive Card, line-tone brackets light up lime and grow on hover
-  const hoverCls = hover && tone === 'line' ? 'transition-all duration-300 group-hover/card:border-lime group-hover/card:size-4' : ''
+export function Corners({ tone = 'line', size = 'size-2.5', hover = false }: { tone?: 'line' | 'signal' | 'slash'; size?: string; hover?: boolean }) {
+  const bc = tone === 'signal' ? 'border-signal' : tone === 'slash' ? 'border-slash' : 'border-faint'
+  // on an interactive Card, line-tone brackets light up signal and grow on hover
+  const hoverCls = hover && tone === 'line' ? 'transition-all duration-300 group-hover/card:border-signal group-hover/card:size-4' : ''
   const k = cn('pointer-events-none absolute z-10', size, hoverCls)
   return (
     <>
@@ -46,7 +46,7 @@ export function Button({
   const base =
     'group relative inline-flex items-center justify-center gap-2 px-5 py-2.5 font-mono text-sm font-medium transition-colors duration-200'
   const map = {
-    primary: { cls: 'bg-lime/10 text-lime hover:bg-lime/20', tone: 'lime' as const },
+    primary: { cls: 'bg-signal/10 text-signal hover:bg-signal/20', tone: 'signal' as const },
     light: { cls: 'bg-ink text-bg hover:bg-white', tone: null },
     outline: { cls: 'bg-surface/40 text-ink hover:bg-surface', tone: 'line' as const },
     ghost: { cls: 'text-muted hover:text-ink', tone: null },
@@ -79,15 +79,23 @@ export function Skeleton({ className }: { className?: string }) {
 }
 
 /* ── Section label — mono eyebrow ── */
+/* A record divider, not a floating kicker: the label sits on the rule that
+   separates one part of the file from the next. */
 export function SectionLabel({ children }: { children: ReactNode }) {
-  return <span className="font-mono text-xs uppercase tracking-[0.22em] text-muted">{children}</span>
+  return (
+    <span className="flex w-full max-w-md items-center gap-4 font-mono text-[11px] tracking-[0.08em] text-faint">
+      <span aria-hidden className="h-px flex-1 bg-line" />
+      {children}
+      <span aria-hidden className="h-px flex-1 bg-line" />
+    </span>
+  )
 }
 
 /* ── Mono tag chip ── */
-export function Tag({ children, tone = 'line' }: { children: ReactNode; tone?: 'line' | 'lime' | 'slash' }) {
+export function Tag({ children, tone = 'line' }: { children: ReactNode; tone?: 'line' | 'signal' | 'slash' }) {
   const c = {
     line: 'text-muted hairline',
-    lime: 'text-lime ring-1 ring-lime/30 bg-lime/5',
+    signal: 'text-signal ring-1 ring-signal/30 bg-signal/5',
     slash: 'text-slash ring-1 ring-slash/30 bg-slash/5',
   }[tone]
   return <span className={cn('inline-flex items-center px-2 py-0.5 font-mono text-[11px] uppercase tracking-wider', c)}>{children}</span>
@@ -113,8 +121,8 @@ export function SettlementMismatch({ serverSymbol }: { serverSymbol?: string }) 
 }
 
 /* ── Corner-bracket frame (Arbital crosshair markers) ── */
-export function Bracket({ children, className, tone = 'line' }: { children: ReactNode; className?: string; tone?: 'line' | 'lime' }) {
-  const c = tone === 'lime' ? 'border-lime/60' : 'border-line'
+export function Bracket({ children, className, tone = 'line' }: { children: ReactNode; className?: string; tone?: 'line' | 'signal' }) {
+  const c = tone === 'signal' ? 'border-signal/60' : 'border-line'
   const k = 'pointer-events-none absolute size-2.5'
   return (
     <div className={cn('relative', className)}>
@@ -136,15 +144,15 @@ export function Card({
 }: {
   children: ReactNode
   className?: string
-  tone?: 'line' | 'lime' | 'slash'
-  /** enables the hover animation (lift + lime border + glow + brackets light up) */
+  tone?: 'line' | 'signal' | 'slash'
+  /** enables the hover animation (lift + signal border + glow + brackets light up) */
   interactive?: boolean
 }) {
   return (
     <div
       className={cn(
         'group/card relative border border-line/60 bg-surface/40 transition-all duration-300',
-        interactive && 'hover:-translate-y-1 hover:border-lime/40 hover:bg-surface hover:shadow-[0_16px_44px_-18px_rgba(180,230,50,0.35)]',
+        interactive && 'hover:-translate-y-1 hover:border-signal/40 hover:bg-surface hover:shadow-[0_16px_44px_-18px_rgba(180,230,50,0.35)]',
         className,
       )}
     >
@@ -170,12 +178,21 @@ export function Reveal({
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-12% 0px' })
+  // A reveal that only ever fires from an observer ships a blank section
+  // wherever that observer does not run: a background tab, a headless
+  // renderer, a crawler. The entrance still plays; this only guarantees the
+  // content stops being hidden either way.
+  const [settled, setSettled] = useState(false)
+  useEffect(() => {
+    const timer = setTimeout(() => setSettled(true), 1200)
+    return () => clearTimeout(timer)
+  }, [])
   return (
     <motion.div
       ref={ref}
       variants={v}
       initial="hidden"
-      animate={immediate || inView ? 'show' : 'hidden'}
+      animate={immediate || inView || settled ? 'show' : 'hidden'}
       transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
       className={className}
     >
@@ -184,7 +201,7 @@ export function Reveal({
   )
 }
 
-/* ── Animated counter (mono lime) ── */
+/* ── Animated counter (mono signal) ── */
 export function Counter({ to, prefix = '', suffix = '', decimals = 0, className }: { to: number; prefix?: string; suffix?: string; decimals?: number; className?: string }) {
   const ref = useRef<HTMLSpanElement>(null)
   const inView = useInView(ref, { once: true })
