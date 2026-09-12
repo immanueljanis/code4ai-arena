@@ -7,6 +7,7 @@ import { SlopMarquee } from './SlopMarquee'
 import { Problem } from './Problem'
 import { HowItWorks } from './HowItWorks'
 import { Proof } from './Proof'
+import { Lineage } from './Lineage'
 import { ForAgents } from './ForAgents'
 import { FinalCTA } from './FinalCTA'
 
@@ -21,6 +22,7 @@ export function Landing() {
       <Problem />
       <HowItWorks />
       <Proof />
+      <Lineage />
       <ForAgents />
       <FinalCTA />
       <SiteFooter />

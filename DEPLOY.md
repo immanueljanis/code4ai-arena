@@ -70,6 +70,7 @@ Both variables are read at **build** time, so changing either needs a rebuild.
 |---|---|
 | `VITE_API_URL` | the server's public URL |
 | `VITE_SETTLEMENT_PROFILE` | `demo-hts` |
+| `VITE_SUBGRAPH_URL` | optional; the subgraph query URL. Unset keeps the bundled exploit records |
 
 Getting `VITE_SETTLEMENT_PROFILE` wrong is visible rather than silent: the
 cockpit compares it against what `/api/state` reports and shows a mismatch

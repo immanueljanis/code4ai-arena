@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "bun:test";
 import { HttpArenaClient } from "../src/lib/arena/client.ts";
+import { formatLoss } from "../src/lib/arena/useExploitHistory.ts";
 import { SETTLEMENT_SYMBOL, UNKNOWN_AMOUNT, formatUsdc, isOpen, isClosed, signed, timeAgo } from "../src/lib/arena/format.ts";
 
 const BASE = "http://server.test";
@@ -194,5 +195,21 @@ describe("settlement mismatch guard", () => {
 
   it("renders the guard where the cockpit shows the asset", () => {
     expect(topBar).toContain("<SettlementMismatch serverSymbol={settlement?.symbol} />");
+  });
+});
+
+describe("historical exploit losses", () => {
+  it("never rounds a real loss up", () => {
+    expect(formatLoss("9600000")).toBe("$9.6M");
+    expect(formatLoss("7400000")).toBe("$7.4M");
+    expect(formatLoss("60000000")).toBe("$60M");
+    expect(formatLoss("611000000")).toBe("$611M");
+    expect(formatLoss("1200000000")).toBe("$1.2B");
+  });
+
+  it("says unknown rather than inventing a figure", () => {
+    for (const bad of ["", "0", "-1", "not-a-number"]) {
+      expect(formatLoss(bad)).toBe("unknown");
+    }
   });
 });
