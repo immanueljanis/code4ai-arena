@@ -2,26 +2,32 @@
 
 ## What is actually live right now
 
-Read this before demoing. Claiming more than this on stage will not survive a
-judge opening HashScan.
-
 | | State |
 |---|---|
-| Arena accounting on Hedera testnet | ✅ live and reproducible |
-| Fresh target deployed per submission | ✅ live |
-| Local playground (anvil, free, instant) | ✅ works offline |
-| x402 HTS stake settlement | ⏳ pending — settlement token not minted yet |
-| Hosted web / API | ❌ none. The old Railway API is gone (404) |
+| x402 HTS stake settlement | ✅ live, both directly and through the gateway |
+| Both verdicts on-chain | ✅ live, with verified balance deltas |
+| Fresh target per submission | ✅ live |
+| Local playground (anvil, free) | ✅ works offline |
+| Hosted web / API | ❌ none. Run it locally |
 
-The live Arena settles a plain ERC-20 (`RHRSL`) standing in for the HTS token,
-so every number below is real money movement — just not yet the x402 leg.
+Settlement is **DemoUSD**, a custom HTS token labelled on-chain as a test token.
+It is not Circle USDC and has no value. Say that out loud if asked.
 
 | | Address |
 |---|---|
-| Arena | `0x5928df319b3D062203D6aF33A6797df4a96b18a4` · `0.0.10472796` |
-| RehearsalToken `RHRSL` | `0x074FDFaA6C79D9De16975f2f05AFdA91c6Ad0C8D` |
-| Operator / verifier | `0xC5e03A05f9068Eb4944A1255e1e56Fc9d22D1992` · `0.0.10465203` |
+| DemoUSD | `0.0.10484976` · `0x00000000000000000000000000000000009ffcf0` |
+| Arena | `0x488a664CA8d0fb0248DCbc16fD24fC97a7bB0961` · `0.0.10485026` |
 | Facilitator | `0.0.10467075` |
+| Operator / verifier | `0.0.10465203` · `0xC5e03A05f9068Eb4944A1255e1e56Fc9d22D1992` |
+
+Open these on HashScan when someone asks for proof. Both are
+`CRYPTOTRANSFER SUCCESS`, fee paid by the facilitator, 1 DemoUSD from agent to
+Arena:
+
+```
+0.0.10467075@1789161821.293370728   direct submission
+0.0.10467075@1789164029.554493924   through the x402 gateway
+```
 
 Explorer: https://hashscan.io/testnet · top up HBAR: https://portal.hedera.com
 
@@ -66,33 +72,29 @@ Open the cockpit, pick **access-control-vault**, Playground tab:
 
 → **VALID**, against a fresh anvil instance, no stake.
 
-### 3. Live on Hedera testnet — the real one
+### 3. Live on Hedera testnet, the real x402 path
+
+Needs the facilitator running (step 4) and an agent that has HBAR for gas and is
+associated with DemoUSD:
 
 ```bash
 cd server
-export REHEARSAL_ARENA_ADDRESS=0x5928df319b3D062203D6aF33A6797df4a96b18a4 \
-       REHEARSAL_TOKEN_ADDRESS=0x074FDFaA6C79D9De16975f2f05AFdA91c6Ad0C8D \
-       REHEARSAL_ACCESS_VAULT_ADDRESS=0x03C025EDF79E1B53Fb18994afecc001dA832afa3 \
-       REHEARSAL_ROUNDING_VAULT_ADDRESS=0xcdD583a4027370b299Af137cB92aa00CB9929F85 \
-       REHEARSAL_TIME_VAULT_ADDRESS=0x61780954E3Eea2Ee9508b83E4756097403341fF8 \
-       HEDERA_ARENA_ACCOUNT_ID=0.0.10472796
-bun run scripts/rehearse-live.ts
+bun run scripts/provision-agent.ts              # prints the agent id + account
+LIVE_AGENT_ACCOUNT_ID=<0.0.x> bun run scripts/live-submit.ts <agentId> INVALID
+LIVE_AGENT_ACCOUNT_ID=<0.0.x> bun run scripts/live-submit.ts <agentId> VALID
 ```
 
-Runs INVALID then VALID end to end and asserts the balance deltas itself:
+INVALID prints a Hedera transaction id as the settlement receipt. VALID prints
+an EVM payout hash and `settlementReceipt: null`, because a VALID verdict never
+settles the stake.
 
 ```
-INVALID  pool +1 token · Arena token +1 · agent left with no stake
-VALID    pool −2 token · Arena token −2 · agent +3 · payout = stake + bounty
-         fresh target per submission (distinct addresses)
+INVALID  pool +1 · Arena +1 · agent -1 · receipt 0.0.10467075@...
+VALID    pool -2 · Arena -2 · agent +3 · receipt null
 ```
 
-Costs ~1.5 HBAR per full run (agent gas top-up dominates). Add
-`REHEARSAL_SCENARIOS=VALID` and `REHEARSAL_AGENT_ID=<uuid>` to rerun one branch
-with an agent that already has gas — about 0.3 HBAR.
-
-**Check the operator balance first.** Below 2 HBAR the arena refuses submissions
-with a 503 by design.
+Provisioning an agent costs about 1.7 HBAR; each submission about 0.5. Below
+2 HBAR the arena refuses submissions with a 503 by design.
 
 ### 4. Facilitator — read-only, free
 

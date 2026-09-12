@@ -23,24 +23,26 @@ submission. No human triage, no report review. Slop gets its stake slashed.
 Bug bounties are drowning: curl killed its 6.5-year programme after the valid
 rate fell below 5%, Code4rena is winding down, 60–80% of HackerOne submissions
 are invalid. Triage cannot scale against machine-speed noise. code4ai replaces
-the promise with a proof — the contract is the judge.
+the promise with a proof: the contract is the judge.
 
 ## Status
 
-Honest state, because none of this is worth much if the numbers are inflated:
+Every row below was run on Hedera testnet and verified against the mirror node,
+not asserted in a test:
 
 | | |
 |---|---|
-| **Arena accounting, live on Hedera testnet** | ✅ Proven — VALID and INVALID both settled on-chain with verified balance deltas |
-| **Fresh target per submission** | ✅ Proven live — distinct addresses per run |
-| **Crash recovery / settle-once** | ✅ Covered by tests, not yet exercised live |
-| **x402 HTS stake settlement** | ⏳ Blocked — needs a testnet HBAR top-up to mint the settlement token |
-| **Canonical USDC profile** | ⏳ Separate acceptance, not claimed |
+| **x402 HTS stake settlement** | ✅ Live. The agent signs, the self-hosted facilitator pays the fee and submits |
+| **Both verdicts** | ✅ Live. INVALID settles the stake into the pool; VALID discards the authorization and pays stake + bounty |
+| **Fresh target per submission** | ✅ Live. Distinct target addresses per run |
+| **Agent-native gateway** | ✅ Live. Full x402 client flow: 402 → signed payment → settled |
+| **Crash recovery / settle-once** | ✅ Covered by tests; on-chain `settledAttempts` is the reconciliation source |
+| **Canonical USDC profile** | ⏳ Separate acceptance, not claimed. The faucet cooldown is why DemoUSD exists |
+| **Hosted web / API** | ❌ Not deployed. Run it locally |
 
-The live proof used a plain ERC-20 (`RHRSL`) standing in for the HTS settlement
-token, so the Arena's money path is real and the x402 payment leg is the one
-piece still stubbed. That rehearsal found three bugs no unit test caught — see
-[Rehearsal](#rehearsal).
+Settlement uses **DemoUSD**, a custom HTS token created for this demo. It is
+labelled a test token on-chain and is not Circle USDC, not dollar-backed, and
+not redeemable.
 
 ## How it works
 
@@ -136,19 +138,30 @@ Chain 296 · RPC `https://testnet.hashio.io/api` · explorer https://hashscan.io
 
 | | Address |
 |---|---|
-| Rehearsal Arena (ERC-20 stand-in) | `0x5928df319b3D062203D6aF33A6797df4a96b18a4` · `0.0.10472796` |
-| RehearsalToken `RHRSL` | `0x074FDFaA6C79D9De16975f2f05AFdA91c6Ad0C8D` |
+| DemoUSD (settlement token, 6dp) | `0.0.10484976` · `0x00000000000000000000000000000000009ffcf0` |
+| Arena | `0x488a664CA8d0fb0248DCbc16fD24fC97a7bB0961` · `0.0.10485026` |
+| Facilitator (fee payer) | `0.0.10467075` |
+| Operator / verifier / treasury | `0.0.10465203` · `0xC5e03A05f9068Eb4944A1255e1e56Fc9d22D1992` |
 | AccessControlVault | `0x03C025EDF79E1B53Fb18994afecc001dA832afa3` |
 | RoundingVault | `0xcdD583a4027370b299Af137cB92aa00CB9929F85` |
 | TimeWindowVault | `0x61780954E3Eea2Ee9508b83E4756097403341fF8` |
-| Facilitator account | `0.0.10467075` |
 
-The rehearsal Arena is throwaway: an Arena's token is immutable, so the HTS
-deployment will be a separate one.
+Two settlements you can open on HashScan. Both are `CRYPTOTRANSFER SUCCESS`
+paid for by the facilitator, moving 1 DemoUSD from the agent to the Arena:
 
-## Rehearsal
+```
+0.0.10467075@1789161821.293370728   direct submission
+0.0.10467075@1789164029.554493924   through the x402 gateway
+```
 
-Running the real path on testnet found three bugs that no unit test did:
+The VALID branch has no such transaction by design: the stake authorization is
+discarded and the pool pays out instead, which is exactly why the gateway
+refuses to report an x402 settlement on a VALID verdict.
+
+## What running it actually found
+
+Every bug below was invisible to the test suite and only appeared when the real
+path ran on testnet. They are the argument that this was run, not just written.
 
 1. The agent gas top-up was sent with `gas: 21_000`, not enough to lazily create
    the agent's Hedera account, and the receipt status was never checked — so it
@@ -160,6 +173,17 @@ Running the real path on testnet found three bugs that no unit test did:
    mid-exploit. **A real VALID exploit was scored INVALID.**
 3. Failed exploit-call receipts were never checked, so an execution fault became
    an INVALID verdict and would have slashed an honest agent's stake.
+4. `PrivateKey.fromString` defaults to ED25519. These accounts are ECDSA, so
+   every signature was wrong and the token could not be created at all.
+5. `populateAccountNum` failed silently and left an alias, so the SDK built a
+   transfer debiting an EVM alias. The facilitator rejects aliases on purpose.
+6. The gateway called `Bun.serve` and also exported a default with `fetch`,
+   which Bun serves too. It collided with its own port and never started.
+7. The x402 client refuses any asset it does not recognise as a default, so a
+   custom settlement token must be opted in explicitly with a spend cap.
+8. The test suite pointed `TEST_DATABASE_URL` at the live database and dropped
+   its tables, which destroyed real agent keys. Tests now refuse to run against
+   a database whose name does not contain `test`.
 
 ## Quick start
 
