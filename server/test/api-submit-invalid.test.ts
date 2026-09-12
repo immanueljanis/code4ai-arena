@@ -65,6 +65,7 @@ function mockDeps(verdict: "VALID" | "INVALID") {
     resolvePayer: async () => "0.0.4242",
     isSettled: async () => false,
     guards: { gasBalance: async () => 10n ** 19n, attemptCount: async () => 0 },
+    provision: async () => ({ agentId: "a", address: "0x0", accountId: "0.0.1" }),
     fundAgent: async () => null,
   } as SubmitDeps;
 }

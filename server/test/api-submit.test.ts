@@ -65,6 +65,7 @@ function mockDeps(verdict: "VALID" | "INVALID") {
     doPayout: async () => "0x" + "dd".repeat(32),
     doSlash: async () => "0x" + "ee".repeat(32),
     writeFeedback: async () => "0x" + "cc".repeat(32),
+    provision: async () => ({ agentId: "a", address: "0x0", accountId: "0.0.1" }),
     fundAgent: async () => null,
   } as SubmitDeps;
 }

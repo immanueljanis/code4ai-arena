@@ -18,6 +18,7 @@ import {
 } from "./x402.ts";
 import { payout, slash, invalidatePool, isAttemptSettled } from "./arena.ts";
 import { ensureAgentUsdc } from "./fund.ts";
+import { provisionAgent } from "./provision.ts";
 import { writeReputationFeedback } from "./erc8004.ts";
 import {
   claimSubmissionAttempt,
@@ -94,6 +95,7 @@ const realDeps: SubmitDeps = {
   doPayout: payout,
   doSlash: slash,
   writeFeedback: writeReputationFeedback,
+  provision: provisionAgent,
   fundAgent: ensureAgentUsdc,
   isSettled: isAttemptSettled,
   guards: realSpendGuards,
@@ -185,7 +187,12 @@ export async function runSubmit(
   //    mismatched stake cannot make the server fund the agent.
   if (x402Authorization) validateAuthorization(x402Authorization);
 
-  // 0b. Fund the agent's stake (USDC) from the verifier — custody mode. The
+  // 0b. A fresh agent wallet has no Hedera account and no association with the
+  //     settlement token, so it cannot be paid at all until both exist. Both
+  //     steps are skipped when already satisfied, so a rerun spends nothing.
+  await deps.provision(agent.id);
+
+  // 0c. Fund the agent's stake (USDC) from the verifier — custody mode. The
   //    verifier (deployer) holds testnet USDC and tops the agent wallet up.
   await deps.fundAgent(agent.walletAddress as `0x${string}`);
 

@@ -82,6 +82,7 @@ function countingDeps(verdict: "VALID" | "INVALID"): { deps: SubmitDeps; counter
       return "0x" + "44".repeat(32);
     },
     writeFeedback: async () => "0x" + "33".repeat(32),
+    provision: async () => ({ agentId: "a", address: "0x0", accountId: "0.0.1" }),
     fundAgent: async () => null,
   } as SubmitDeps;
   return { deps, counters };

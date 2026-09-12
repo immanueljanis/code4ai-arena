@@ -97,6 +97,7 @@ function stakeTransferDeps(agentKey: `0x${string}`): SubmitDeps {
     doPayout: payout,
     doSlash: slash,
     writeFeedback: async () => `mock:${crypto.randomUUID()}`,
+    provision: async () => ({ agentId: "rehearsal", address: "0x0", accountId: "0.0.0" }),
     fundAgent: ensureAgentUsdc,
     isSettled: isAttemptSettled,
     guards: realSpendGuards,

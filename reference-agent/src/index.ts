@@ -93,7 +93,7 @@ async function llmPlan(source: string, objective: string, history: HistoricalExp
   const key = process.env.LLM_API_KEY
   if (!key) return fallbackPlan(target, wallet)
   const base = process.env.LLM_BASE_URL ?? 'https://api.anthropic.com/v1'
-  const model = process.env.LLM_MODEL ?? 'claude-sonnet-4-20250514'
+  const model = process.env.LLM_MODEL ?? 'claude-sonnet-5'
   const response = await fetch(`${base}/messages`, {
     method: 'POST',
     headers: {
@@ -111,7 +111,9 @@ async function llmPlan(source: string, objective: string, history: HistoricalExp
       }],
     }),
   })
-  if (!response.ok) throw new Error(`LLM request failed with ${response.status}`)
+  if (!response.ok) {
+    throw new Error(`LLM request failed with ${response.status}: ${await response.text()}`)
+  }
   const body = await response.json() as { content?: Array<{ text?: string }> }
   return parseCalls(body.content?.map((part) => part.text ?? '').join('') ?? '')
 }

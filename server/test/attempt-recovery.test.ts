@@ -75,6 +75,7 @@ function harness(verdict: "VALID" | "INVALID"): Harness {
   };
 
   const deps = {
+    provision: async () => ({ agentId: "a", address: "0x0", accountId: "0.0.1" }),
     fundAgent: async () => {
       counters.funded += 1;
       crash("fund");
