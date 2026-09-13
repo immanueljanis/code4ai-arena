@@ -41,3 +41,5 @@ demo/frames/
 .demo-hts-provisioning.json.tmp
 .hedera-accounts.json
 .hedera-accounts.json.tmp
+
+DEPLOYMENT.env
