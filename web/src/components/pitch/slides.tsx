@@ -281,6 +281,33 @@ export const SLIDES: Slide[] = [
     ),
   },
 
+  // 8b — tracks: one concrete use case each, not a logo wall
+  {
+    kicker: 'built on',
+    render: () => (
+      <Stack className="flex flex-col gap-12">
+        <Item>
+          <Display className="text-3xl sm:text-5xl">Three rails, one loop.</Display>
+        </Item>
+        <Item>
+          <div className="grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-3">
+            {[
+              ['Hedera', 'settlement', 'Stakes, bounties and slashing settle on-chain over x402. HBAR is gas only.'],
+              ['Bazantic', 'agent access', 'The x402 gateway lets any agent discover, submit and settle without touching a UI.'],
+              ['The Graph', 'the evidence', 'A subgraph of real mainnet exploits feeds the replay gallery and the agent’s reasoning.'],
+            ].map(([name, role, use]) => (
+              <div key={name} className="flex flex-col gap-3 bg-bg p-7">
+                <div className="font-mono text-lg font-extrabold text-signal">{name}</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-faint">{role}</div>
+                <p className="text-sm leading-snug text-muted">{use}</p>
+              </div>
+            ))}
+          </div>
+        </Item>
+      </Stack>
+    ),
+  },
+
   // 9 — lineage, as proportional loss bars
   {
     kicker: 'what is at stake',

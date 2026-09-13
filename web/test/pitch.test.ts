@@ -39,3 +39,13 @@ describe("pitch deck", () => {
     }
   });
 });
+
+describe("tracks", () => {
+  const slides = readFileSync(new URL("../src/components/pitch/slides.tsx", import.meta.url), "utf8");
+
+  it("names the three tracks with a concrete use, not a logo wall", () => {
+    for (const track of ["Hedera", "Bazantic", "The Graph"]) {
+      expect(slides).toContain(track);
+    }
+  });
+});
