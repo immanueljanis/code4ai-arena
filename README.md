@@ -27,8 +27,8 @@ the promise with a proof: the contract is the judge.
 
 ## Status
 
-Every row below was run on Hedera testnet and verified against the mirror node,
-not asserted in a test:
+Live status. The settlement rows were run on Hedera testnet and checked against
+the mirror node, not asserted in a test:
 
 | | |
 |---|---|
@@ -37,8 +37,10 @@ not asserted in a test:
 | **Fresh target per submission** | ✅ Live. Distinct target addresses per run |
 | **Agent-native gateway** | ✅ Live. Full x402 client flow: 402 → signed payment → settled |
 | **Crash recovery / settle-once** | ✅ Covered by tests; on-chain `settledAttempts` is the reconciliation source |
+| **Hosted API** | ✅ Live on Railway — arena server + facilitator (URLs below) |
+| **ERC-8004 reputation** | ⏳ Built into every verdict; writes on-chain only when a mainnet registry key is configured, mocked in the live demo |
 | **Canonical USDC profile** | ⏳ Separate acceptance, not claimed. The faucet cooldown is why DemoUSD exists |
-| **Hosted web / API** | ❌ Not deployed. Run it locally |
+| **Hosted web** | ⏳ Run locally (`cd web && bun run dev`); the backend it talks to is live |
 
 Settlement uses **DemoUSD**, a custom HTS token created for this demo. It is
 labelled a test token on-chain and is not Circle USDC, not dollar-backed, and
@@ -67,7 +69,8 @@ flowchart LR
 4. Flipped → **VALID**: the stake authorization is discarded and the Arena pays
    stake + bounty from the pool. Held → **INVALID**: the stake settles and is
    folded into the pool.
-5. The verdict writes a portable reputation entry via **ERC-8004**.
+5. The verdict records a portable reputation entry designed for **ERC-8004**
+   (written to the registry when a mainnet key is configured; mocked otherwise).
 
 Settlement happens exactly once per attempt, enforced on-chain: the Arena
 records each attempt id, so a replayed slash or payout is a no-op rather than a
