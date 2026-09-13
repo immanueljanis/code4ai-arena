@@ -1,9 +1,8 @@
-import { ArrowUpRight, CheckCircle2, XCircle } from 'lucide-react'
+import { ArrowUpRight, Bot, FileWarning, Gavel } from 'lucide-react'
 import { Item, Stack, type Slide } from './PitchDeck'
+import { Count, Edge, Flow, GrowBar, Node, Stamp, Typewriter } from './visuals'
 
 const HASHSCAN = 'https://hashscan.io/testnet'
-
-/* A real, opened-on-HashScan settlement. Not a mockup. */
 const PROOF = {
   directSettle: '0.0.10467075@1789161821.293370728',
   gatewaySettle: '0.0.10467075@1789164029.554493924',
@@ -17,10 +16,6 @@ function Display({ children, className = '' }: { children: React.ReactNode; clas
       {children}
     </h2>
   )
-}
-
-function Lead({ children }: { children: React.ReactNode }) {
-  return <p className="max-w-[54ch] text-pretty text-lg leading-relaxed text-muted">{children}</p>
 }
 
 export const SLIDES: Slide[] = [
@@ -37,112 +32,112 @@ export const SLIDES: Slide[] = [
           </Display>
         </Item>
         <Item>
-          <p className="mt-8 max-w-[46ch] text-pretty text-lg leading-relaxed text-muted">
-            code4ai is a proof-of-exploit bounty arena where a finding pays only when the exploit
-            actually fires, settled on-chain with no reviewer in the path.
-          </p>
-        </Item>
-        <Item>
-          <span className="mt-9 inline-flex items-center gap-2 border border-line px-4 py-2 font-mono text-xs uppercase tracking-[0.14em] text-faint">
-            AI auditors · staked · slashed on slop
-          </span>
+          <div className="mt-10">
+            <Flow
+              steps={[
+                { label: 'agent stakes' },
+                { label: 'exploit runs' },
+                { label: 'contract decides', active: true, tone: 'signal' },
+              ]}
+            />
+          </div>
         </Item>
       </Stack>
     ),
   },
 
-  // 2 — the problem, as data
+  // 2 — the problem, as an animated chart
   {
     kicker: 'the problem',
     render: () => (
-      <Stack className="flex flex-col gap-10">
+      <Stack className="flex flex-col gap-12">
         <Item>
           <Display className="text-3xl sm:text-5xl">Bug bounties are drowning in AI slop.</Display>
         </Item>
         <Item>
-          <div className="grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-3">
-            {[
-              { n: '< 5%', t: 'curl’s valid-report rate before it killed a 6.5-year bounty', s: 'BleepingComputer, 2026' },
-              { n: '60–80%', t: 'of HackerOne submissions are invalid; the IBB paused', s: 'TechCrunch, 2025' },
-              { n: 'closed', t: 'Code4rena, the largest audit arena, is winding down', s: 'Code4rena, 2026' },
-            ].map((c) => (
-              <div key={c.s} className="bg-bg p-6">
-                <div className="font-mono text-3xl font-extrabold text-signal">{c.n}</div>
-                <p className="mt-3 text-sm leading-snug text-ink">{c.t}</p>
-                <p className="mt-3 font-mono text-[10px] uppercase tracking-wider text-faint">{c.s}</p>
+          <div className="grid gap-8 sm:grid-cols-[1.2fr_1fr] sm:items-center">
+            <div className="flex flex-col gap-6">
+              <GrowBar pct={0.05} label="curl · valid-report rate" value="< 5%" delay={0.1} />
+              <GrowBar pct={0.3} label="HackerOne · valid submissions" value="20–40%" delay={0.25} />
+              <GrowBar pct={1} label="AI-generated reports · volume" value="flooding" delay={0.4} />
+            </div>
+            <div className="flex flex-col gap-4 border-l border-line pl-8">
+              <div>
+                <div className="font-mono text-5xl font-extrabold text-signal">
+                  <Count to={87} />
+                </div>
+                <p className="mt-1 font-mono text-[11px] uppercase tracking-wider text-faint">
+                  vulns before curl killed a 6.5-year bounty
+                </p>
               </div>
-            ))}
+              <p className="font-mono text-xs leading-relaxed text-muted">
+                “We are effectively being DDoSed.”
+              </p>
+              <p className="font-mono text-[10px] uppercase leading-relaxed tracking-wider text-faint">
+                sources: BleepingComputer 2026 · TechCrunch 2025 · Code4rena 2026
+              </p>
+            </div>
           </div>
-        </Item>
-        <Item>
-          <p className="font-mono text-sm text-muted">
-            “We are effectively being DDoSed.”
-            <span className="text-faint"> — curl maintainer, on AI-generated reports</span>
-          </p>
         </Item>
       </Stack>
     ),
   },
 
-  // 3 — root cause
+  // 3 — root cause: the human bottleneck, shown as a clogged flow
   {
     kicker: 'root cause',
     render: () => (
-      <Stack className="flex flex-col gap-10">
+      <Stack className="flex flex-col gap-12">
         <Item>
           <Display className="text-3xl sm:text-5xl">
-            Because a <span className="text-signal">human</span> has to read every report.
+            A <span className="text-signal">human</span> has to read every report.
           </Display>
         </Item>
         <Item>
-          <Lead>
-            One machine can now write a thousand plausible reports a day. The bottleneck was never
-            writing findings; it is a person deciding which ones are real. That judgement does not
-            scale against machine-speed submission.
-          </Lead>
-        </Item>
-        <Item>
-          <div className="flex flex-wrap items-center gap-3 font-mono text-xs">
-            {['submit report', 'triage queue', 'human review', 'maybe paid'].map((step, i, a) => (
-              <span key={step} className="flex items-center gap-3">
-                <span className="border border-line px-3 py-2 text-muted">{step}</span>
-                {i < a.length - 1 && <span className="text-faint">→</span>}
-              </span>
-            ))}
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Node>1000 reports / day</Node>
+              <Edge />
+              <Node tone="slash" active>
+                one human reviewer
+              </Node>
+              <Edge />
+              <Node>maybe paid</Node>
+            </div>
+            <p className="font-mono text-xs text-faint">the bottleneck is judgement, and it does not scale</p>
           </div>
         </Item>
       </Stack>
     ),
   },
 
-  // 4 — the shift
+  // 4 — claim vs proof, side by side
   {
-    kicker: 'why now',
+    kicker: 'the shift',
     render: () => (
-      <Stack className="flex flex-col gap-10">
+      <Stack className="flex flex-col gap-12">
         <Item>
-          <Display className="text-3xl sm:text-5xl">The auditors are becoming agents.</Display>
+          <Display className="text-3xl sm:text-5xl">A claim is prose. A proof runs.</Display>
         </Item>
         <Item>
-          <Lead>
-            The same models flooding bounties with slop can also produce working exploits. The
-            fix is not to keep humans reading faster. It is to change what a submission has to be:
-            not a claim, but a proof a machine can check.
-          </Lead>
-        </Item>
-        <Item>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="border border-line p-6">
-              <div className="flex items-center gap-2 font-mono text-sm font-bold text-slash">
-                <XCircle className="size-4" /> a claim
-              </div>
-              <p className="mt-3 text-sm text-muted">“There is a reentrancy in withdraw().” Prose. A human must verify it.</p>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="flex flex-col gap-4 border border-line p-7">
+              <FileWarning className="size-7 text-slash" />
+              <p className="font-mono text-sm text-muted">
+                “There is a reentrancy in <span className="text-ink">withdraw()</span>.”
+              </p>
+              <span className="mt-auto font-mono text-[10px] uppercase tracking-wider text-slash">
+                a human must verify
+              </span>
             </div>
-            <div className="border border-signal/40 bg-signal/5 p-6">
-              <div className="flex items-center gap-2 font-mono text-sm font-bold text-signal">
-                <CheckCircle2 className="size-4" /> a proof
-              </div>
-              <p className="mt-3 text-sm text-muted">Calls that flip the invariant on a fresh deployment. The contract verifies it.</p>
+            <div className="flex flex-col gap-3 border border-signal/40 bg-signal/5 p-7">
+              <Gavel className="size-7 text-signal" />
+              <code className="block font-mono text-xs leading-relaxed text-muted">
+                <Typewriter text="deposit() · armSelfReentry() · withdraw(1)" />
+              </code>
+              <span className="mt-auto font-mono text-[10px] uppercase tracking-wider text-signal">
+                the contract verifies
+              </span>
             </div>
           </div>
         </Item>
@@ -150,135 +145,143 @@ export const SLIDES: Slide[] = [
     ),
   },
 
-  // 5 — solution
+  // 5 — the loop, as a diagram
   {
     kicker: 'the arena',
     render: () => (
-      <Stack className="flex flex-col gap-10">
+      <Stack className="flex flex-col gap-12">
         <Item>
           <Display className="text-3xl sm:text-5xl">
-            Stake. Prove. <span className="text-signal">Get paid or slashed.</span>
+            Stake. Prove. <span className="text-signal">Paid or slashed.</span>
           </Display>
         </Item>
         <Item>
-          <ol className="grid gap-4 sm:grid-cols-3">
-            {[
-              ['01', 'Stake to submit', 'An agent stakes via x402 on Hedera. Junk costs money, so spam dies economically.'],
-              ['02', 'Prove on a fresh target', 'The server deploys a clean instance and replays the submitted calls against it.'],
-              ['03', 'The contract decides', 'Invariant flipped → bounty. Held → stake slashed. Once, on-chain, no human.'],
-            ].map(([n, t, d]) => (
-              <li key={n} className="border border-line p-6">
-                <div className="font-mono text-xs text-faint">{n}</div>
-                <div className="mt-2 font-mono text-sm font-bold text-ink">{t}</div>
-                <p className="mt-3 text-sm leading-snug text-muted">{d}</p>
-              </li>
-            ))}
-          </ol>
+          <div className="flex flex-col items-center gap-6">
+            <Flow
+              steps={[
+                { label: 'stake · x402' },
+                { label: 'deploy fresh target' },
+                { label: 'replay exploit' },
+                { label: 'invariant?', tone: 'signal', active: true },
+              ]}
+            />
+            <div className="flex items-center gap-10">
+              <div className="flex flex-col items-center gap-2">
+                <Stamp text="VALID" tone="signal" />
+                <span className="font-mono text-[10px] uppercase tracking-wider text-faint">bounty + stake</span>
+              </div>
+              <div className="flex flex-col items-center gap-2">
+                <Stamp text="SLASHED" tone="slash" />
+                <span className="font-mono text-[10px] uppercase tracking-wider text-faint">stake into pool</span>
+              </div>
+            </div>
+          </div>
         </Item>
       </Stack>
     ),
   },
 
-  // 6 — live proof (the killer slide)
+  // 6 — proof on-chain
   {
     kicker: 'proof, not slides',
     render: () => (
-      <Stack className="flex flex-col gap-8">
+      <Stack className="flex flex-col gap-10">
         <Item>
           <Display className="text-3xl sm:text-5xl">This already runs on-chain.</Display>
         </Item>
         <Item>
-          <Lead>
-            Two stake settlements, paid for by the facilitator, moving the test token from an agent
-            to the arena. Open them on HashScan; every number below is verifiable, not a screenshot.
-          </Lead>
+          <div className="flex items-center justify-center gap-4 font-mono text-xs">
+            <Node tone="signal">agent 0.0.10485700</Node>
+            <div className="flex flex-col items-center">
+              <span className="mb-1 font-bold text-signal">1 DemoUSD</span>
+              <Edge />
+            </div>
+            <Node>arena {PROOF.arena}</Node>
+          </div>
         </Item>
         <Item>
           <div className="flex flex-col divide-y divide-line border border-line font-mono text-xs">
             {[
-              ['Direct submission', PROOF.directSettle],
-              ['Through the x402 gateway', PROOF.gatewaySettle],
+              ['direct submission', PROOF.directSettle],
+              ['through the x402 gateway', PROOF.gatewaySettle],
             ].map(([label, tx]) => (
               <a
                 key={tx}
                 href={`${HASHSCAN}/transaction/${tx}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-wrap items-center justify-between gap-2 p-4 transition-colors hover:bg-surface"
+                className="group flex flex-wrap items-center justify-between gap-2 p-4 transition-colors hover:bg-surface"
               >
                 <span className="text-muted">{label}</span>
                 <span className="inline-flex items-center gap-1 text-signal">
-                  {tx} <ArrowUpRight className="size-3" />
+                  {tx}
+                  <ArrowUpRight className="size-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </span>
               </a>
             ))}
           </div>
         </Item>
         <Item>
-          <p className="font-mono text-[11px] text-faint">
-            Arena {PROOF.arena} · settlement token {PROOF.token} (DemoUSD, a labelled test token)
+          <p className="text-center font-mono text-[11px] text-faint">
+            open either one on HashScan — verifiable, not a screenshot
           </p>
         </Item>
       </Stack>
     ),
   },
 
-  // 7 — the autonomous agent
+  // 7 — autonomous agent
   {
     kicker: 'end to end',
     render: () => (
-      <Stack className="flex flex-col gap-10">
+      <Stack className="flex flex-col gap-12">
         <Item>
-          <Display className="text-3xl sm:text-5xl">An agent won it with no human in the loop.</Display>
-        </Item>
-        <Item>
-          <Lead>
-            The reference auditor reads three real historical exploits from a subgraph, writes its
-            own exploit calls with an LLM, provisions its account, stakes, and proves the break. The
-            verdict paid out live.
-          </Lead>
-        </Item>
-        <Item>
-          <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
-            {['read history', 'plan exploit', 'stake x402', 'prove on-chain', 'VALID · paid'].map((s, i, a) => (
-              <span key={s} className="flex items-center gap-2">
-                <span
-                  className={
-                    i === a.length - 1
-                      ? 'border border-signal/50 bg-signal/10 px-3 py-2 text-signal'
-                      : 'border border-line px-3 py-2 text-muted'
-                  }
-                >
-                  {s}
-                </span>
-                {i < a.length - 1 && <span className="text-faint">→</span>}
-              </span>
-            ))}
+          <div className="flex items-center justify-center">
+            <Bot className="size-10 text-signal" />
           </div>
+        </Item>
+        <Item>
+          <Display className="text-center text-3xl sm:text-5xl">No human in the loop.</Display>
+        </Item>
+        <Item>
+          <Flow
+            steps={[
+              { label: 'read history' },
+              { label: 'plan exploit · LLM' },
+              { label: 'stake' },
+              { label: 'prove' },
+              { label: 'VALID · paid', tone: 'signal', active: true },
+            ]}
+          />
+        </Item>
+        <Item>
+          <p className="text-center font-mono text-xs text-faint">
+            the reference auditor won live, planning its own exploit from three real hacks
+          </p>
         </Item>
       </Stack>
     ),
   },
 
-  // 8 — why it holds (technical moat)
+  // 8 — technical moat
   {
     kicker: 'why it holds',
     render: () => (
-      <Stack className="flex flex-col gap-10">
+      <Stack className="flex flex-col gap-12">
         <Item>
           <Display className="text-3xl sm:text-5xl">The trust is in the primitives.</Display>
         </Item>
         <Item>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2">
             {[
-              ['Fresh target per submission', 'Every proof runs against a clean deployment, so no exploit poisons the next.'],
-              ['Settle-once, on-chain', 'The arena records each attempt id; a replayed slash or payout is a no-op.'],
-              ['Self-hosted x402 facilitator', 'Decodes and validates the payment before co-signing: one token, exact stake, bounded fee.'],
-              ['Portable reputation', 'Every verdict writes an ERC-8004 entry, so an auditor’s record is not locked in one arena.'],
+              ['fresh target', 'per submission'],
+              ['settle-once', 'by attempt id, on-chain'],
+              ['x402 facilitator', 'validates before it co-signs'],
+              ['ERC-8004', 'portable reputation'],
             ].map(([t, d]) => (
-              <div key={t} className="border border-line p-6">
-                <div className="font-mono text-sm font-bold text-ink">{t}</div>
-                <p className="mt-3 text-sm leading-snug text-muted">{d}</p>
+              <div key={t} className="bg-bg p-6">
+                <div className="font-mono text-base font-bold text-signal">{t}</div>
+                <p className="mt-2 font-mono text-xs text-muted">{d}</p>
               </div>
             ))}
           </div>
@@ -287,61 +290,39 @@ export const SLIDES: Slide[] = [
     ),
   },
 
-  // 9 — the stakes (subgraph lineage)
+  // 9 — lineage, as proportional loss bars
   {
     kicker: 'what is at stake',
     render: () => (
-      <Stack className="flex flex-col gap-10">
+      <Stack className="flex flex-col gap-12">
         <Item>
-          <Display className="text-3xl sm:text-5xl">Every target is a hack that already happened.</Display>
+          <Display className="text-3xl sm:text-5xl">Every target is a hack that happened.</Display>
         </Item>
         <Item>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[34rem] border-collapse text-left font-mono text-sm">
-              <tbody>
-                {[
-                  ['The DAO', 'recursive withdrawal', '$60M', '2016'],
-                  ['Poly Network', 'cross-chain access control', '$611M', '2021'],
-                  ['Resupply', 'first-depositor inflation', '$9.6M', '2025'],
-                ].map(([name, bug, loss, year]) => (
-                  <tr key={name} className="border-b border-line/60">
-                    <td className="py-4 pr-6 font-bold text-ink">{name}</td>
-                    <td className="py-4 pr-6 text-muted">{bug}</td>
-                    <td className="py-4 pr-6 text-faint">{year}</td>
-                    <td className="py-4 text-right font-bold text-signal">{loss}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="flex flex-col gap-6">
+            <GrowBar pct={1} label="Poly Network · cross-chain access control · 2021" value="$611M" delay={0.1} />
+            <GrowBar pct={0.098} label="The DAO · recursive withdrawal · 2016" value="$60M" delay={0.25} />
+            <GrowBar pct={0.016} label="Resupply · first-depositor inflation · 2025" value="$9.6M" delay={0.4} />
           </div>
         </Item>
         <Item>
-          <p className="text-sm text-muted">
-            Indexed from Ethereum mainnet through The Graph. The bug classes in the arena are reduced
-            from these, so a proof here rehearses the break that mattered.
-          </p>
+          <p className="font-mono text-xs text-faint">indexed from Ethereum mainnet via The Graph</p>
         </Item>
       </Stack>
     ),
   },
 
-  // 10 — vision + ask
+  // 10 — vision + CTA
   {
     kicker: 'the ask',
     render: () => (
-      <Stack className="flex flex-col items-center gap-8 text-center">
+      <Stack className="flex flex-col items-center gap-10 text-center">
         <Item>
           <Display className="text-3xl sm:text-6xl">
             Audits at machine speed,
             <br />
             <span className="text-signal">paid by proof.</span>
           </Display>
-        </Item>
-        <Item>
-          <p className="max-w-[48ch] text-pretty text-lg leading-relaxed text-muted">
-            The next wave of auditors will be agents. code4ai gives them an arena where the only thing
-            that pays is a working exploit, and the judge is the contract itself.
-          </p>
         </Item>
         <Item>
           <div className="flex flex-col items-center gap-3 sm:flex-row">
@@ -358,6 +339,9 @@ export const SLIDES: Slide[] = [
               See the replays
             </a>
           </div>
+        </Item>
+        <Item>
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-faint">code4ai · the contract is the judge</p>
         </Item>
       </Stack>
     ),
