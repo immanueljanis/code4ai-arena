@@ -1,15 +1,15 @@
-type ExploitCall = {
+export type ExploitCall = {
   caller: string
   entryPoint: string
   args: Record<string, unknown>
 }
 
-type Agent = {
+export type Agent = {
   id: string
   walletAddress: `0x${string}`
 }
 
-type HistoricalExploit = {
+export type HistoricalExploit = {
   targetKey: string
   incident: string
   technique: string
@@ -17,30 +17,30 @@ type HistoricalExploit = {
   attackTx: string
 }
 
-type Submission = {
+export type Submission = {
   verdict: 'VALID' | 'INVALID'
   exploitTxHash: string
   settlementTxHash: string
   reputationTxHash: string
 }
 
-const api = process.env.CODE4AI_API ?? 'http://localhost:8787'
-const target = process.env.TARGET ?? 'reentrancy-vault'
+export const api = process.env.CODE4AI_API ?? 'http://localhost:8787'
+export const target = process.env.TARGET ?? 'reentrancy-vault'
 const subgraph = process.env.SUBGRAPH_URL
 const placeholder = '0xa11ce00000000000000000000000000000000000'
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${api}${path}`, init)
   const body = await response.json().catch(() => ({}))
   if (!response.ok) throw new Error(`${response.status}: ${JSON.stringify(body)}`)
   return body as T
 }
 
-async function readTarget(): Promise<{ source: string; objective: string }> {
+export async function readTarget(): Promise<{ source: string; objective: string }> {
   return request(`/api/contests/${encodeURIComponent(target)}`)
 }
 
-async function readHistory(): Promise<HistoricalExploit[]> {
+export async function readHistory(): Promise<HistoricalExploit[]> {
   if (!subgraph) return []
   const response = await fetch(subgraph, {
     method: 'POST',
@@ -114,9 +114,9 @@ function provider(key: string): 'openai' | 'anthropic' {
   return key.startsWith('sk-ant-') ? 'anthropic' : 'openai'
 }
 
-type Plan = { calls: ExploitCall[]; planSource: 'model' | 'builtin' }
+export type Plan = { calls: ExploitCall[]; planSource: 'model' | 'builtin' }
 
-async function llmPlan(source: string, objective: string, history: HistoricalExploit[], wallet: string): Promise<Plan> {
+export async function llmPlan(source: string, objective: string, history: HistoricalExploit[], wallet: string): Promise<Plan> {
   const key = process.env.LLM_API_KEY
   if (!key) return { calls: fallbackPlan(target, wallet), planSource: 'builtin' }
 
@@ -171,7 +171,7 @@ async function llmPlan(source: string, objective: string, history: HistoricalExp
   return { calls: parseCalls(text), planSource: 'model' }
 }
 
-function normalizeCalls(calls: ExploitCall[], wallet: string): ExploitCall[] {
+export function normalizeCalls(calls: ExploitCall[], wallet: string): ExploitCall[] {
   const replace = (value: unknown): unknown => {
     if (typeof value === 'string' && value.toLowerCase() === placeholder) return wallet
     if (Array.isArray(value)) return value.map(replace)
@@ -209,7 +209,9 @@ async function main(): Promise<void> {
   if (result.verdict !== 'VALID') throw new Error(`reference agent received ${result.verdict}`)
 }
 
-main().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : error)
-  process.exitCode = 1
-})
+if (import.meta.main) {
+  main().catch((error: unknown) => {
+    console.error(error instanceof Error ? error.message : error)
+    process.exitCode = 1
+  })
+}
