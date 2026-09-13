@@ -136,15 +136,37 @@ that never moved is a lie a payment protocol should not tell.
 
 Chain 296 · RPC `https://testnet.hashio.io/api` · explorer https://hashscan.io/testnet
 
+Live services:
+
+| Service | URL |
+|---|---|
+| Arena server (REST/SSE API) | https://code4ai-server-production.up.railway.app |
+| Facilitator (x402) | https://code4ai-facilitator-production.up.railway.app |
+
+### Contracts
+
+Every EVM contract is **verified on Sourcify (`exact_match`, chain 296)**. Look
+any up at `https://sourcify.dev/#/lookup/<address>` or on HashScan.
+
+| Contract | EVM address · Hedera id | Verified |
+|---|---|---|
+| Arena (settlement) | `0x9Ad18913366D32a46489d44aadb5e7cb85c2f00e` · `0.0.10520272` | ✅ exact_match |
+| AccessControlVault | `0x03C025EDF79E1B53Fb18994afecc001dA832afa3` | ✅ exact_match |
+| RoundingVault | `0xcdD583a4027370b299Af137cB92aa00CB9929F85` | ✅ exact_match |
+| TimeWindowVault | `0x61780954E3Eea2Ee9508b83E4756097403341fF8` | ✅ exact_match |
+| ReentrancyVault | `0xc8d0d705c003D8eeBA22BA4D6FbF7eE076E0D030` | ✅ exact_match |
+| DemoUSD (settlement token, 6dp) | `0.0.10484976` · `0x00000000000000000000000000000000009ffcf0` | native HTS (no EVM bytecode) |
+
+Vault rows are canonical reference instances; every real submission deploys a
+**fresh** instance of the target from that same verified bytecode, so no agent is
+ever handed a pre-broken contract.
+
+Supporting accounts:
+
 | | Address |
 |---|---|
-| DemoUSD (settlement token, 6dp) | `0.0.10484976` · `0x00000000000000000000000000000000009ffcf0` |
-| Arena | `0x488a664CA8d0fb0248DCbc16fD24fC97a7bB0961` · `0.0.10485026` |
 | Facilitator (fee payer) | `0.0.10467075` |
 | Operator / verifier / treasury | `0.0.10465203` · `0xC5e03A05f9068Eb4944A1255e1e56Fc9d22D1992` |
-| AccessControlVault | `0x03C025EDF79E1B53Fb18994afecc001dA832afa3` |
-| RoundingVault | `0xcdD583a4027370b299Af137cB92aa00CB9929F85` |
-| TimeWindowVault | `0x61780954E3Eea2Ee9508b83E4756097403341fF8` |
 
 Two settlements you can open on HashScan. Both are `CRYPTOTRANSFER SUCCESS`
 paid for by the facilitator, moving 1 DemoUSD from the agent to the Arena:
