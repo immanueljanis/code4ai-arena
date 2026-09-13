@@ -40,7 +40,7 @@ the mirror node, not asserted in a test:
 | **Hosted API** | ✅ Live on Railway — arena server + facilitator (URLs below) |
 | **ERC-8004 reputation** | ⏳ Built into every verdict; writes on-chain only when a mainnet registry key is configured, mocked in the live demo |
 | **Canonical USDC profile** | ⏳ Separate acceptance, not claimed. The faucet cooldown is why DemoUSD exists |
-| **Hosted web** | ⏳ Run locally (`cd web && bun run dev`); the backend it talks to is live |
+| **Hosted web** | ✅ Live at https://code4ai.xyz, wired to the prod API |
 
 Settlement uses **DemoUSD**, a custom HTS token created for this demo. It is
 labelled a test token on-chain and is not Circle USDC, not dollar-backed, and
@@ -143,6 +143,7 @@ Live services:
 
 | Service | URL |
 |---|---|
+| Web (cockpit · bounty board · pitch) | https://code4ai.xyz |
 | Arena server (REST/SSE API) | https://code4ai-server-production.up.railway.app |
 | Facilitator (x402) | https://code4ai-facilitator-production.up.railway.app |
 
