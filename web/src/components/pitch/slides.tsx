@@ -181,49 +181,42 @@ export const SLIDES: Slide[] = [
     ),
   },
 
-  // 6 — proof on-chain
+  // 6 — proof on-chain, with the real HashScan capture
   {
     kicker: 'proof, not slides',
     render: () => (
-      <Stack className="flex flex-col gap-10">
+      <Stack className="flex flex-col gap-8">
         <Item>
           <Display className="text-3xl sm:text-5xl">This already runs on-chain.</Display>
         </Item>
         <Item>
-          <div className="flex items-center justify-center gap-4 font-mono text-xs">
-            <Node tone="signal">agent 0.0.10485700</Node>
-            <div className="flex flex-col items-center">
-              <span className="mb-1 font-bold text-signal">1 DemoUSD</span>
-              <Edge />
+          <a
+            href={`${HASHSCAN}/transaction/${PROOF.directSettle}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group mx-auto block max-w-4xl overflow-hidden border border-line transition-colors hover:border-signal/50"
+          >
+            <div className="flex items-center justify-between border-b border-line bg-surface px-4 py-2 font-mono text-[11px]">
+              <span className="flex items-center gap-2 text-faint">
+                <span className="rounded-full bg-signal/15 px-2 py-0.5 font-bold text-signal">SUCCESS</span>
+                hashscan.io/testnet
+              </span>
+              <span className="inline-flex items-center gap-1 text-signal">
+                open <ArrowUpRight className="size-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </span>
             </div>
-            <Node>arena {PROOF.arena}</Node>
-          </div>
+            <img
+              src="/proof/settle-transfers.png"
+              alt="HashScan token transfer: the agent sends 1 DemoUSD to the arena, fee paid by the facilitator"
+              className="block w-full"
+              loading="lazy"
+            />
+          </a>
         </Item>
         <Item>
-          <div className="flex flex-col divide-y divide-line border border-line font-mono text-xs">
-            {[
-              ['direct submission', PROOF.directSettle],
-              ['through the x402 gateway', PROOF.gatewaySettle],
-            ].map(([label, tx]) => (
-              <a
-                key={tx}
-                href={`${HASHSCAN}/transaction/${tx}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex flex-wrap items-center justify-between gap-2 p-4 transition-colors hover:bg-surface"
-              >
-                <span className="text-muted">{label}</span>
-                <span className="inline-flex items-center gap-1 text-signal">
-                  {tx}
-                  <ArrowUpRight className="size-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </span>
-              </a>
-            ))}
-          </div>
-        </Item>
-        <Item>
-          <p className="text-center font-mono text-[11px] text-faint">
-            open either one on HashScan — verifiable, not a screenshot
+          <p className="text-center font-mono text-[11px] leading-relaxed text-faint">
+            agent 0.0.10485104 pays 1 DemoUSD to arena 0.0.10485026; the facilitator pays the fee.
+            <br className="hidden sm:block" /> the same settlement runs through the x402 gateway too.
           </p>
         </Item>
       </Stack>
@@ -234,14 +227,12 @@ export const SLIDES: Slide[] = [
   {
     kicker: 'end to end',
     render: () => (
-      <Stack className="flex flex-col gap-12">
+      <Stack className="flex flex-col items-center gap-8 text-center">
         <Item>
-          <div className="flex items-center justify-center">
-            <Bot className="size-10 text-signal" />
+          <div className="flex flex-col items-center gap-4">
+            <Bot className="size-9 text-signal" />
+            <Display className="text-3xl sm:text-5xl">No human in the loop.</Display>
           </div>
-        </Item>
-        <Item>
-          <Display className="text-center text-3xl sm:text-5xl">No human in the loop.</Display>
         </Item>
         <Item>
           <Flow
@@ -255,7 +246,7 @@ export const SLIDES: Slide[] = [
           />
         </Item>
         <Item>
-          <p className="text-center font-mono text-xs text-faint">
+          <p className="max-w-[52ch] font-mono text-xs leading-relaxed text-faint">
             the reference auditor won live, planning its own exploit from three real hacks
           </p>
         </Item>
